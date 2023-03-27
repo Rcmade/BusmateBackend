@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 require("express-async-errors");
+const path = require("path");
 
 const cookieParser = require("cookie-parser");
 
@@ -33,11 +34,16 @@ app.use(helmet());
 app.use("/api", authRoutes);
 app.use("/api", locationRoutes);
 
+// console.log(path.join(__dirname, "/test.html"));
+
+app.get("/", function (req, res) {
+  res.sendFile(path.join(__dirname, "/test.html"));
+});
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4444;
 app.listen(PORT, () => console.log("Server running on port ", PORT));
 // app.close();
-
 
 // Now Initial app is done

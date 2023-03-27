@@ -49,7 +49,7 @@ const signup = async (req, res) => {
 
       const imgsObj = {};
 
-      await results.forEach((element) => {
+      results.forEach((element) => {
         // console.log(element);
         Object.assign(imgsObj, { [element["type"]]: element["uri"] });
       });
@@ -61,7 +61,7 @@ const signup = async (req, res) => {
         idCard,
         busNumber,
         ...imgsObj,
-      }).save();
+      }).save()
 
       // create signed token
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
@@ -73,10 +73,10 @@ const signup = async (req, res) => {
         httpOnly: true,
       });
 
-      const { password: passwordField, ...rest } = user._doc;
+      user.password = undefined;
       return res.json({
         token,
-        user: rest,
+        user,
       });
     } catch (err) {
       console.log(err);
@@ -119,18 +119,18 @@ const otpSendController = async (req, res) => {
 const verifyOtp = async (req, res) => {
   const { otp, hash, email } = req.body;
   if (!otp || !hash || !email) {
-    return res.status(400).json({ message: "All fields are required!" });
+    return res.json({ message: "All fields are required!" });
   }
 
   const [hashedOtp, expires] = hash.split(".");
   if (Date.now() > +expires) {
-    return res.status(400).json({ message: "OTP expired!" });
+    return res.json({ message: "OTP expired!" });
   }
 
   const data = `${email}.${+otp}.${+expires}`;
   const isValid = await AuthServices.verifyOtp(hashedOtp, data);
   if (!isValid) {
-    return res.status(400).json({ error: "Invalid OTP" });
+    return res.json({ error: "Invalid OTP" });
   } else {
     return res.status(200).json({ message: "You Are Varified" });
   }
