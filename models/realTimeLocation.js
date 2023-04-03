@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 const realTimeLocation = new mongoose.Schema({
   latitude: {
-    type: String,
+    type: Number,
     trim: true,
     required: true,
   },
   longitude: {
-    type: String,
+    type: Number,
     trim: true,
     required: true,
   },

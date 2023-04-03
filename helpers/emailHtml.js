@@ -28,7 +28,7 @@ const emailHtml = (email, name, otp, timeLimit = "10 Min") => {
               <tr>
                 <td class="align-center">
                   <img
-                    src="https://res.cloudinary.com/du1fpl9ph/image/upload/v1679549004/1678878345392_oltaw6.png"
+                    src="https://res.cloudinary.com/du1fpl9ph/image/upload/v1680269961/BusmetsLogo_frbuvl.png"
                     height="80"
                     alt="BusMets"
                   />
@@ -81,7 +81,7 @@ const emailHtml = (email, name, otp, timeLimit = "10 Min") => {
                         If you have any questions or concerns about your
                         account, please feel free to reach out to our customer
                         support team at
-                        <a href="mailto: rcmade12345@gmail.com">Contact</a>.
+                        <a href="mailto: contact.busmets@gmail.com">Contact</a>.
                         We're always here to help!
                       </p>
                       <p>

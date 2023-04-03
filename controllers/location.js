@@ -21,11 +21,11 @@ const newLocation = async (req, res) => {
   if (getCurrentContributor?.currentContributer?.toString() === _id) {
     console.log("Matches current contributor");
     await RealTimeLocation.create({
-      latitude,
-      longitude,
+      latitude: +latitude || 0,
+      longitude: +longitude || 0,
       busNumber,
       contributer: _id,
-      heading,
+      heading: +heading || 0,
       ms,
     });
     return res.json({ data: req.body, previous: false, wait: false });
@@ -188,7 +188,7 @@ const getNewLocation = async (req, res) => {
   })
     .sort({ createdAt: 1 })
     .select("-_id longitude latitude heading");
-  // console.log(getCurrentContributor);
+  // console.log({ getCurrentContributor });
 
   return res.json(getCurrentContributor);
 
