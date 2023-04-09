@@ -35,17 +35,6 @@ class Admin {
     if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
       const user = await User.findById(req.body._id);
       if (user) {
-        await EmailServices.sendEmailService(
-          user.email,
-          userNotAuthenticateUserEmail(
-            req.body.name,
-            req.body.email,
-            req.body.idCard,
-            req.body.busNumber,
-            req.body.profileImage || "Not Added"
-          )
-        );
-
         const profilePublicId = await getPublicId(user.profileImage);
 
         const idCardPublicId = await getPublicId(user.profileImage);
@@ -72,6 +61,18 @@ class Admin {
         );
 
         await User.findByIdAndDelete(user._id);
+
+        await EmailServices.sendEmailService(
+          user.email,
+          userNotAuthenticateUserEmail(
+            req.body.name,
+            req.body.email,
+            req.body.idCard,
+            req.body.busNumber,
+            req.body.profileImage || "Not Added"
+          )
+        );
+
         return res.json({
           message: `Email has been sent to this email ${user.email} . And Also deleted`,
         });

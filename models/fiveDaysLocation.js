@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const realTimeLocation = new mongoose.Schema({
+const FiveDaysLocation = new mongoose.Schema({
   latitude: {
     type: Number,
     trim: true,
@@ -9,11 +9,6 @@ const realTimeLocation = new mongoose.Schema({
     type: Number,
     trim: true,
     required: true,
-  },
-  heading: {
-    type: Number,
-    trim: true,
-    expires: "3m", // expires after 3 minutes
   },
   busNumber: {
     type: Number,
@@ -29,11 +24,6 @@ const realTimeLocation = new mongoose.Schema({
     required: true,
   },
 
-  ms: {
-    type: Number,
-    expires: "20m",
-  },
-
   createdAt: {
     type: Date,
     required: true,
@@ -42,5 +32,4 @@ const realTimeLocation = new mongoose.Schema({
 });
 
 
-module.exports = mongoose.model("RealtimeLocation", realTimeLocation);
-
+module.exports = mongoose.model("FiveDaysLocation", FiveDaysLocation);
