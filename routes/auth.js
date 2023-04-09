@@ -25,5 +25,6 @@ router.post("/otp-varify", verifyOtp);
 router.post("/forgot-password", forgotPassword);
 router.get("/user-initial", isAuth, userInitialRoute);
 router.post("/user-update", isAuth, updateProfile);
+router.post("/user-varify", isAuth, updateProfile);
 
 module.exports = router;

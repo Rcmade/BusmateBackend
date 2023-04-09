@@ -1,13 +1,12 @@
 const transporter = require("../config/emailConfig");
-const emailHtml = require("../helpers/emailHtml");
 
 class EmailServices {
-  async sendEmailService(toEmail, name, otp, expiresTime) {
+  async sendEmailService(toEmail, html) {
     const mailOptions = {
       from: process.env.EMAIL_FROM,
       to: toEmail,
       subject: "Email Varification",
-      html: emailHtml(toEmail, name, otp, expiresTime),
+      html: html,
     };
 
     return transporter.sendMail(mailOptions, function (error, info) {

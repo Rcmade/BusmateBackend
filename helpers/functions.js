@@ -23,6 +23,7 @@ const calculateDistance = async (lat1, lat2, lon1, lon2) => {
   // calculate the result in METERS
   return +(c * r * 1000);
 };
+
 const dynamicSort = (data) => {
   return data.sort((data1, data2) => {
     return new Date(data1.createdAt).getTime() <
@@ -35,4 +36,36 @@ const dynamicSort = (data) => {
   });
 };
 
-module.exports = { calculateDistance, dynamicSort };
+const parseQuery = async (query) => {
+  const result = {};
+  for (const key in query) {
+    const value = query[key];
+
+    if (typeof value === "object") {
+      result[key] = parseQuery(value);
+    } else if (!isNaN(value)) {
+      result[key] = Number(value);
+    } else if (key === "sorting") {
+      try {
+        result[key] = JSON.parse(value);
+      } catch (err) {
+        console.log(`Error parsing sorting value: ${value}`);
+        console.error(err);
+        result[key] = value;
+      }
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+};
+
+const getPublicId = async (imgUrl) => {
+  const publicId =
+    imgUrl?.substring(imgUrl?.lastIndexOf("/") + 1, imgUrl?.lastIndexOf(".")) ||
+    "xfvwgpqjlbaditc04gz5";
+    
+  return publicId;
+};
+
+module.exports = { calculateDistance, dynamicSort, parseQuery, getPublicId };

@@ -13,14 +13,14 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       required: function () {
-        return this.role === "student";
+        return this.role !== "driver";
       },
     },
 
     password: {
       type: String,
       required: function () {
-        return this.role === "student";
+        return this.role !== "driver";
       },
       min: 6,
       max: 64,
@@ -36,7 +36,7 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       required: function () {
-        return this.role === "student";
+        return this.role !== "driver";
       },
       unique: true,
     },
@@ -45,7 +45,7 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       required: function () {
-        return this.role === "student";
+        return this.role !== "driver";
       },
     },
 
@@ -53,12 +53,12 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       required: function () {
-        return this.role === "student";
+        return this.role !== "driver";
       },
     },
 
     busNumber: {
-      type: Number,
+      type: String,
       trim: true,
       required: true,
       enum: [
@@ -71,9 +71,7 @@ const userSchema = new Schema(
     weight: {
       type: Number,
       trim: true,
-      required: function () {
-        return this.role === "student";
-      },
+      required: true,
       default: 1,
     },
 

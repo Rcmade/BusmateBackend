@@ -2,8 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 require("express-async-errors");
-const path = require("path");
-
+const adminRoutes = require("./routes/admin");
 const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./routes/auth");
@@ -33,6 +32,7 @@ app.use(helmet());
 // route middlewares
 app.use("/api", authRoutes);
 app.use("/api", locationRoutes);
+app.use("/api/admin", adminRoutes);
 
 // console.log(path.join(__dirname, "/test.html"));
 

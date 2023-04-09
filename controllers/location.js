@@ -3,6 +3,7 @@ const User = require("../models/user");
 const contributerData = require("../models/appUtility");
 const { calculateDistance, dynamicSort } = require("../helpers/functions");
 const { calculateWeightMs } = require("../helpers/MathFunctions");
+const url = require("url");
 
 const newLocation = async (req, res) => {
   const {
@@ -95,7 +96,7 @@ const asignContributer = async (req, res) => {
     );
 
     console.log(distance, "METER");
-    // if the  distance is less than 200 the compare the weight
+    // if the  distance is less than 300 the compare the weight
     if (+distance < 300) {
       const contributerWeight = findBusNo[0].contributer.weight;
       const contributerMs = findBusNo[0].ms;

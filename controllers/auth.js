@@ -7,6 +7,7 @@ const cloudinary = require("../config/config");
 const AuthServices = require("../Services/otp");
 const hashService = require("../Services/hashService");
 const EmailServices = require("../Services/emailServices");
+const emailHtml = require("../helpers/emailHtml");
 
 const signup = async (req, res) => {
   console.log("HIT SIGNUP");
@@ -61,7 +62,7 @@ const signup = async (req, res) => {
         idCard,
         busNumber,
         ...imgsObj,
-      }).save()
+      }).save();
 
       // create signed token
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
@@ -100,15 +101,14 @@ const otpSendController = async (req, res) => {
     try {
       await EmailServices.sendEmailService(
         email,
-        name,
-        otp,
-        10 // Time to expires email
+        emailHtml(email, name, otp, 10)
       );
       return res.json({
         hash: `${hash}.${expires}`,
         message: "OTP has been sent to your email",
       });
     } catch (error) {
+      console.log(error);
       return res.json({ error: error, hash: `${hash}.${expires}` });
     }
   } else {
