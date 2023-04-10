@@ -44,8 +44,8 @@ const realTimeLocation = require("./realTimeLocation");
 const dataTransferEmail = require("../helpers/dataTransferEmail");
 const EmailServices = require("../Services/emailServices");
 
-// Schedule the data transfer task to run every 2 minutes
-cron.schedule("0 2 * * *", async () => {
+// Schedule the data transfer task to run every day at 2 Am
+cron.schedule("30 20 * * *", async () => {
   console.log("Starting data transfer task and deleting old documents...");
   try {
     // Find documents in the source collection
@@ -57,13 +57,17 @@ cron.schedule("0 2 * * *", async () => {
     await fiveDaysLocation.deleteMany({ createdAt: { $lt: cutoffDate } });
 
     await EmailServices.sendEmailService(
-      user.email,
-      dataTransferEmail("Data transfer and document deletion successful!")
+      "rahulchourasiya4567@gmail.com",
+      dataTransferEmail(
+        `Data transfer and document deletion successful! ${cutoffDate?.toLocaleString()}`
+      )
     );
     console.log("Data transfer and document deletion successful!");
-  
   } catch (error) {
-    await EmailServices.sendEmailService(user.email, dataTransferEmail(error));
+    await EmailServices.sendEmailService(
+      "rahulchourasiya4567@gmail.com",
+      dataTransferEmail(error)
+    );
     console.error("An error occurred during data transfer:", error);
   } finally {
     await realTimeLocation.deleteMany({});
