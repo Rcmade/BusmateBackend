@@ -13,4 +13,24 @@ router.get("/user-search", isAuth, Admin.userSearch);
 router.get("/user-profile", isAuth, Admin.userProfile);
 router.post("/nginx-error", isAuth, Admin.nginxError);
 
+const FiveDaysLocation = require("../models/fiveDaysLocation");
+
+router.get("/get", async (req, res) => {
+  FiveDaysLocation.aggregate([
+    {
+      $group: {
+        _id: "$busNumber",
+        locations: { $push: "$$ROOT" },
+      },
+    },
+  ]).exec((err, result) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    return res.json(result);
+  });
+});
+
 module.exports = router;

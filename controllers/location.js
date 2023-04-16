@@ -2,8 +2,8 @@ const RealTimeLocation = require("../models/realTimeLocation");
 const User = require("../models/user");
 const contributerData = require("../models/appUtility");
 const { calculateDistance, dynamicSort } = require("../helpers/functions");
+
 const { calculateWeightMs } = require("../helpers/MathFunctions");
-const url = require("url");
 
 const newLocation = async (req, res) => {
   const {
@@ -11,14 +11,15 @@ const newLocation = async (req, res) => {
     longitude1: longitude,
     busNumber,
     heading,
-    weight,
     ms,
     _id,
   } = req.body;
 
+  // find to contributor how sitted in the bus
   const getCurrentContributor = await contributerData.findOne({ busNumber });
   // User Data
   // console.log({ _id, getCurrentContributor });
+  // because after assigning the user we want to store data only who becomes a contributor from the assing method
   if (getCurrentContributor?.currentContributer?.toString() === _id) {
     console.log("Matches current contributor");
     await RealTimeLocation.create({
@@ -29,10 +30,10 @@ const newLocation = async (req, res) => {
       heading: +heading || 0,
       ms,
     });
-    return res.json({ data: req.body, previous: false, wait: false });
+    return res.json({ previous: false, wait: false });
   } else {
     console.log("Not Matches current contributor");
-
+    // find from the previous contributor because if current user is unavailable the we get location from the previous contributor
     const isPrevious = getCurrentContributor.previousFiveContributer.find(
       (data) => {
         // console.log(data.contributer, _id);
@@ -49,8 +50,6 @@ const newLocation = async (req, res) => {
       return res.json({ previous: true, wait: false, youAreDone: true });
     }
   }
-
-  // res.json({ data: req.body });
 };
 
 const asignContributer = async (req, res) => {
@@ -69,7 +68,6 @@ const asignContributer = async (req, res) => {
   // });
   // .limit(1)
   // IF there is no data present in database which means it is the first contributar for that bus
-
   if (!findBusNo.length) {
     console.log("inside length of buses");
     const createFirstContributer = await contributerData.create({

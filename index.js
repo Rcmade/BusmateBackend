@@ -4,6 +4,7 @@ const cors = require("cors");
 require("express-async-errors");
 const adminRoutes = require("./routes/admin");
 const cookieParser = require("cookie-parser");
+const http = require("http"); // import http module
 
 const authRoutes = require("./routes/auth");
 const locationRoutes = require("./routes/locationRoute");
@@ -19,6 +20,9 @@ const app = express();
 // };
 
 // db connection
+
+const server = http.createServer(app);
+
 require("./Db/db");
 
 // middlewares
@@ -43,7 +47,7 @@ app.use("/api/admin", adminRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4444;
-app.listen(PORT, () => console.log("Server running on port ", PORT));
+server.listen(PORT, () => console.log("Server running on port ", PORT));
 // app.close();
 
 // Now Initial app is done

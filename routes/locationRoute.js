@@ -14,7 +14,8 @@ router.post("/asignContributer", asignContributer);
 router.get("/getnewlocation", getNewLocation);
 
 router.get("/get", async (req, res) => {
-  res.json(await realTimeLocation.find());
+  // res.json(await realTimeLocation.find());
+  res.json({});
 });
 
 router.post("/test", async (req, res) => {
