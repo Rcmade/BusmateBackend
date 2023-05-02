@@ -18,10 +18,10 @@ router.get("/get", async (req, res) => {
   res.json({});
 });
 
-router.post("/test", async (req, res) => {
-  const user = new User(req.body);
-  await user.save();
-  res.json(user);
+router.post("/get", async (req, res) => {
+  // const user = new User(req.body);
+  // await user.save();
+  res.json("user");
 });
 
 module.exports = router;
