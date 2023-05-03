@@ -12,6 +12,7 @@ router.get("/user-all-user-view", isAuth, Admin.allUserView);
 router.get("/user-search", isAuth, Admin.userSearch);
 router.get("/user-profile", isAuth, Admin.userProfile);
 router.post("/nginx-error", isAuth, Admin.nginxError);
+router.get("/current-contributors", isAuth, Admin.currentContributor);
 
 const FiveDaysLocation = require("../models/fiveDaysLocation");
 

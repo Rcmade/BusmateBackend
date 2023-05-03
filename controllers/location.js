@@ -186,7 +186,7 @@ const getNewLocation = async (req, res) => {
     busNumber: +busNumber,
   })
     .sort({ createdAt: 1 })
-    .select("-_id longitude latitude heading");
+    .select("-_id longitude latitude heading createdAt");
   // console.log({ getCurrentContributor });
 
   return res.json(getCurrentContributor);
