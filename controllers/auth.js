@@ -166,18 +166,9 @@ const signin = async (req, res) => {
       });
     }
     // create signed token
-    const token = jwt.sign(
-      {
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "30d",
-      }
-    );
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
 
     res.cookie("login", token, {
       maxAge: 1000 * 60 * 60 * 24 * 30,
