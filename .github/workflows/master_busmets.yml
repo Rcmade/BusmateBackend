@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'busmets'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_060FE653948F44F9BF074F98E0CEBEE5 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_05FC08F7F6B34A8090792F4C325C45ED }}
           package: .
