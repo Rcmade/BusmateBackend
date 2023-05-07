@@ -64,8 +64,22 @@ const getPublicId = async (imgUrl) => {
   const publicId =
     imgUrl?.substring(imgUrl?.lastIndexOf("/") + 1, imgUrl?.lastIndexOf(".")) ||
     "xfvwgpqjlbaditc04gz5";
-    
+
   return publicId;
 };
 
-module.exports = { calculateDistance, dynamicSort, parseQuery, getPublicId };
+const isCurrentContributorAvailable = async (latestLocationDate) => {
+  const isLastLocation2Min =
+    new Date(
+      new Date(new Date(latestLocationDate)).getTime() + 1000 * 60 * 2.5
+    ).getTime() > Date.now();
+  return isLastLocation2Min;
+};
+
+module.exports = {
+  calculateDistance,
+  dynamicSort,
+  parseQuery,
+  getPublicId,
+  isCurrentContributorAvailable,
+};

@@ -5,6 +5,8 @@ require("express-async-errors");
 const adminRoutes = require("./routes/admin");
 const cookieParser = require("cookie-parser");
 const http = require("http"); // import http module
+const cluster = require("cluster");
+const os = require("os");
 
 const authRoutes = require("./routes/auth");
 const locationRoutes = require("./routes/locationRoute");
@@ -45,25 +47,22 @@ app.use("/api/admin", adminRoutes);
 // });
 
 app.use(errorHandler);
+// const numCPUs = os.cpus().length;
+// console.log({ numCPUs });
+// if (cluster.isMaster) {
+//   console.log(`Master ${process.pid} is running`);
 
-const io = require("socket.io")(server);
+//   // Fork workers
+//   for (let i = 0; i < numCPUs; i++) {
+//     cluster.fork();
+//   }
 
-io.on("connection", (socket) => {
-  console.log("Client connected");
-
-  // Send a message to the client every 5 seconds
-  const interval = setInterval(() => {
-    socket.emit("message", "Hello from the server!");
-  }, 5000);
-
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-    clearInterval(interval);
-  });
-});
-
+//   cluster.on("exit", (worker, code, signal) => {
+//     console.log(`worker ${worker.process.pid} died`);
+//   });
+// } else {
+// console.log(`Worker ${process.pid} started`);
+// Start server
 const PORT = process.env.PORT || 4444;
-server.listen(PORT, () => console.log("Server running on port ", PORT));
-// app.close();
-
-// Now Initial app is done
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// }

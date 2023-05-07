@@ -5,6 +5,8 @@ const User = require("../models/user");
 const EmailServices = require("../Services/emailServices");
 const cloudinary = require("../config/config");
 const userAuthenticateUserEmail = require("../helpers/userAuthenticateUserEmail");
+const realTimeLocation = require("../models/realTimeLocation");
+const user = require("../models/user");
 
 class Admin {
   async authenticateUser(req, res) {
@@ -195,21 +197,52 @@ class Admin {
       return res.json({ error: "Un Autharize Access" });
     }
   }
+
+  // async backupUser(req, res) {
+  //   if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
+  //     try {
+  //       const cutoffDate = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000); // 1 day
+  //       // Find documents in the source collection
+  //       const allUsers = await user
+  //         .find({ createdAt: { $gte: cutoffDate } })
+  //         .lean();
+  //       return res.json(allUsers);
+  //     } catch (error) {
+  //       await EmailServices.sendEmailService(
+  //         "rahulchourasiya4567@gmail.com",
+  //         dataTransferEmail(
+  //           `"Error from primery server when sending User backup documents:", ${error}`
+  //         )
+  //       );
+  //       console.log(error);
+  //       return res.json({ error });
+  //     }
+  //   } else {
+  //     await EmailServices.sendEmailService(
+  //       "rahulchourasiya4567@gmail.com",
+  //       dataTransferEmail(
+  //         `"Un Autharize Access" in primery server User backup route`
+  //       )
+  //     );
+  //     return res.json({ error: "Un Autharize Access" });
+  //   }
+  // }
+
 }
 
 const a = async () => {
-  const contributerObj = await contributerData.aggregate([
+  const contributorObj = await contributorData.aggregate([
     {
       $group: {
         _id: "$busNumber",
-        currentContributer: { $last: "$currentContributer" },
-        previousFiveContributers: {
-          $first: "$previousFiveContributer",
+        currentContributor: { $last: "$currentContributor" },
+        previousFiveContributors: {
+          $first: "$previousFiveContributor",
         },
-        previousFiveContributersCreatedAT: {
-          $first: "$previousFiveContributer",
+        previousFiveContributorsCreatedAT: {
+          $first: "$previousFiveContributor",
         },
-        // previousFiveContribu: { $last: "$previousFiveContributer.createdAt" },
+        // previousFiveContribu: { $last: "$previousFiveContributor.createdAt" },
         createdAt: { $last: "$createdAt" },
         updatedAt: { $last: "$updatedAt" },
       },
@@ -218,26 +251,26 @@ const a = async () => {
     {
       $lookup: {
         from: "users",
-        localField: "currentContributer",
+        localField: "currentContributor",
         foreignField: "_id",
-        as: "currentContributer",
+        as: "currentContributor",
       },
     },
 
     {
-      $unwind: "$currentContributer",
+      $unwind: "$currentContributor",
     },
 
     {
       $lookup: {
         from: "users",
-        localField: "previousFiveContributers.contributer",
+        localField: "previousFiveContributors.contributor",
         foreignField: "_id",
-        as: "previousFiveContributers.contributer",
+        as: "previousFiveContributors.contributor",
       },
     },
     {
-      $unwind: "$previousFiveContributers",
+      $unwind: "$previousFiveContributors",
     },
 
     {
@@ -247,8 +280,8 @@ const a = async () => {
             "$$ROOT",
             {
               busNumber: "$_id",
-              currentContributer: "$currentContributer",
-              previousFiveContributer: "$previousFiveContributer",
+              currentContributor: "$currentContributor",
+              previousFiveContributor: "$previousFiveContributor",
               createdAt: {
                 $dateToString: {
                   format: "%Y-%m-%dT%H:%M:%S.%LZ",
@@ -272,49 +305,49 @@ const a = async () => {
         _id: 0,
         __v: 0,
 
-        "currentContributer.password": 0,
-        "currentContributer.role": 0,
-        "currentContributer.idImage": 0,
-        "currentContributer.isAuthenticated": 0,
-        "currentContributer.penalty": 0,
-        "currentContributer.createdAt": 0,
-        "currentContributer.updatedAt": 0,
-        "currentContributer.token": 0,
-        "previousFiveContributers.contributer.password": 0,
-        "previousFiveContributers.contributer.token": 0,
-        "previousFiveContributers.contributer.role": 0,
-        "previousFiveContributers.contributer.idImage": 0,
-        "previousFiveContributers.contributer.isAuthenticated": 0,
-        "previousFiveContributers.contributer.penalty": 0,
-        "previousFiveContributers.contributer.createdAt": 0,
-        "previousFiveContributers.contributer.updatedAt": 0,
-        "previousFiveContributers.contributer.__v": 0,
+        "currentContributor.password": 0,
+        "currentContributor.role": 0,
+        "currentContributor.idImage": 0,
+        "currentContributor.isAuthenticated": 0,
+        "currentContributor.penalty": 0,
+        "currentContributor.createdAt": 0,
+        "currentContributor.updatedAt": 0,
+        "currentContributor.token": 0,
+        "previousFiveContributors.contributor.password": 0,
+        "previousFiveContributors.contributor.token": 0,
+        "previousFiveContributors.contributor.role": 0,
+        "previousFiveContributors.contributor.idImage": 0,
+        "previousFiveContributors.contributor.isAuthenticated": 0,
+        "previousFiveContributors.contributor.penalty": 0,
+        "previousFiveContributors.contributor.createdAt": 0,
+        "previousFiveContributors.contributor.updatedAt": 0,
+        "previousFiveContributors.contributor.__v": 0,
       },
     },
   ]);
-  const obj2 = contributerObj.map((item) => {
-    const prevContributers = item.previousFiveContributers.contributer;
-    const prevContributersCreatedAt = item.previousFiveContributersCreatedAT;
-    const updatedPrevContributers = prevContributers.map((contributer) => {
-      const currentContributerId = contributer._id;
+  const obj2 = contributorObj.map((item) => {
+    const prevContributors = item.previousFiveContributors.contributor;
+    const prevContributorsCreatedAt = item.previousFiveContributorsCreatedAT;
+    const updatedPrevContributors = prevContributors.map((contributor) => {
+      const currentContributorId = contributor._id;
 
-      for (let i = 0; i < prevContributersCreatedAt.length; i++) {
-        const createdAt = prevContributersCreatedAt[i].createdAt;
-        const contributerId = prevContributersCreatedAt[i].contributer;
+      for (let i = 0; i < prevContributorsCreatedAt.length; i++) {
+        const createdAt = prevContributorsCreatedAt[i].createdAt;
+        const contributorId = prevContributorsCreatedAt[i].contributor;
 
-        if (contributerId?.toString() === currentContributerId?.toString()) {
-          return { ...contributer, createdAt };
+        if (contributorId?.toString() === currentContributorId?.toString()) {
+          return { ...contributor, createdAt };
         }
       }
 
-      return contributer;
+      return contributor;
     });
 
     return {
       ...item,
-      previousFiveContributers: {
-        ...item.previousFiveContributers,
-        contributer: updatedPrevContributers,
+      previousFiveContributors: {
+        ...item.previousFiveContributors,
+        contributor: updatedPrevContributors,
       },
     };
   });
@@ -326,7 +359,7 @@ module.exports = new Admin();
 
 const obj = [
   {
-    currentContributer: {
+    currentContributor: {
       _id: "64322d6e01b149350d7e1fe7",
       name: "Rahul",
       email: "rahulchourasiya4567@gmail.com",
@@ -337,8 +370,8 @@ const obj = [
       weight: 1.4,
       __v: 0,
     },
-    previousFiveContributers: {
-      contributer: [
+    previousFiveContributors: {
+      contributor: [
         {
           _id: "64312935267b1d564c784726",
           name: "Tushar",
@@ -359,14 +392,14 @@ const obj = [
         },
       ],
     },
-    previousFiveContributersCreatedAT: [
+    previousFiveContributorsCreatedAT: [
       {
-        contributer: "6432a6735afc217f79ac0eb9",
+        contributor: "6432a6735afc217f79ac0eb9",
         createdAt: "2023-04-17T03:03:11.541Z",
         _id: "643cb71d0ee8fe50ae5d6367",
       },
       {
-        contributer: "64312935267b1d564c784726",
+        contributor: "64312935267b1d564c784726",
         createdAt: "2023-04-17T03:03:57.541Z",
         _id: "643cb69b0ee8fe50ae5d6308",
       },

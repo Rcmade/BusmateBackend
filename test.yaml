@@ -1,0 +1,10 @@
+config:
+  target: "http://localhost:4444"
+
+scenarios:
+  - name: "Test API"
+    flow:
+      - get:
+          url: "/api/get"
+          count: 100
+
