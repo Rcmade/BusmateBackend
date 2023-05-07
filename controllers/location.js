@@ -133,7 +133,6 @@ const asignContributor = async (req, res) => {
     // change current contributor
     // if distance is less then 300 Meter
     if (+distance <= 300 || !lastLocationTime) {
-
       // Sort the contributors by their createdAt timestamp and remove the oldest contributors. here we want only five contributor
       const resetContributor =
         dynamicSort(getContributor.previousFiveContributor)?.length > 5
@@ -179,7 +178,7 @@ const asignContributor = async (req, res) => {
           contributor: _id,
         });
       }
-      
+
       const updateContributor = await contributorData.findOneAndUpdate(
         {
           busNumber,
