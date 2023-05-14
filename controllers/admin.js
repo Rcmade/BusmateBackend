@@ -236,144 +236,142 @@ class Admin {
 
   async currentContributor(req, res) {
     if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
-      const contributerObj = await ContributorDb.aggregate([
-        {
-          $group: {
-            _id: "$busNumber",
-            currentContributer: { $last: "$currentContributer" },
-            previousFiveContributers: {
-              $first: "$previousFiveContributer",
-            },
-            previousFiveContributersCreatedAT: {
-              $first: "$previousFiveContributer",
-            },
-            // previousFiveContribu: { $last: "$previousFiveContributer.createdAt" },
-            createdAt: { $last: "$createdAt" },
-            updatedAt: { $last: "$updatedAt" },
-          },
-        },
+      // const contributerObj = await ContributorDb.aggregate([
+      //   {
+      //     $group: {
+      //       _id: "$busNumber",
+      //       currentContributer: { $last: "$currentContributer" },
+      //       previousFiveContributers: {
+      //         $first: "$previousFiveContributer",
+      //       },
+      //       previousFiveContributersCreatedAT: {
+      //         $first: "$previousFiveContributer",
+      //       },
+      //       // previousFiveContribu: { $last: "$previousFiveContributer.createdAt" },
+      //       createdAt: { $last: "$createdAt" },
+      //       updatedAt: { $last: "$updatedAt" },
+      //     },
+      //   },
 
-        {
-          $lookup: {
-            from: "users",
-            localField: "currentContributer",
-            foreignField: "_id",
-            as: "currentContributer",
-          },
-        },
+      //   {
+      //     $lookup: {
+      //       from: "users",
+      //       localField: "currentContributer",
+      //       foreignField: "_id",
+      //       as: "currentContributer",
+      //     },
+      //   },
 
-        {
-          $unwind: "$currentContributer",
-        },
+      //   {
+      //     $unwind: "$currentContributer",
+      //   },
 
-        {
-          $lookup: {
-            from: "users",
-            localField: "previousFiveContributers.contributer",
-            foreignField: "_id",
-            as: "previousFiveContributers.contributer",
-          },
-        },
-        {
-          $unwind: "$previousFiveContributers",
-        },
+      //   {
+      //     $lookup: {
+      //       from: "users",
+      //       localField: "previousFiveContributers.contributer",
+      //       foreignField: "_id",
+      //       as: "previousFiveContributers.contributer",
+      //     },
+      //   },
+      //   {
+      //     $unwind: "$previousFiveContributers",
+      //   },
 
-        {
-          $replaceRoot: {
-            newRoot: {
-              $mergeObjects: [
-                "$$ROOT",
-                {
-                  busNumber: "$_id",
-                  currentContributer: "$currentContributer",
-                  previousFiveContributer: "$previousFiveContributer",
-                  createdAt: {
-                    $dateToString: {
-                      format: "%Y-%m-%dT%H:%M:%S.%LZ",
-                      date: "$createdAt",
-                    },
-                  },
-                  updatedAt: {
-                    $dateToString: {
-                      format: "%Y-%m-%dT%H:%M:%S.%LZ",
-                      date: "$updatedAt",
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        },
+      //   {
+      //     $replaceRoot: {
+      //       newRoot: {
+      //         $mergeObjects: [
+      //           "$$ROOT",
+      //           {
+      //             busNumber: "$_id",
+      //             currentContributer: "$currentContributer",
+      //             previousFiveContributer: "$previousFiveContributer",
+      //             createdAt: {
+      //               $dateToString: {
+      //                 format: "%Y-%m-%dT%H:%M:%S.%LZ",
+      //                 date: "$createdAt",
+      //               },
+      //             },
+      //             updatedAt: {
+      //               $dateToString: {
+      //                 format: "%Y-%m-%dT%H:%M:%S.%LZ",
+      //                 date: "$updatedAt",
+      //               },
+      //             },
+      //           },
+      //         ],
+      //       },
+      //     },
+      //   },
 
-        {
-          $project: {
-            _id: 0,
-            __v: 0,
+      //   {
+      //     $project: {
+      //       _id: 0,
+      //       __v: 0,
 
-            "currentContributer.password": 0,
-            "currentContributer.role": 0,
-            "currentContributer.idImage": 0,
-            "currentContributer.isAuthenticated": 0,
-            "currentContributer.penalty": 0,
-            "currentContributer.createdAt": 0,
-            "currentContributer.updatedAt": 0,
-            "currentContributer.token": 0,
-            "previousFiveContributers.contributer.password": 0,
-            "previousFiveContributers.contributer.token": 0,
-            "previousFiveContributers.contributer.role": 0,
-            "previousFiveContributers.contributer.idImage": 0,
-            "previousFiveContributers.contributer.isAuthenticated": 0,
-            "previousFiveContributers.contributer.penalty": 0,
-            "previousFiveContributers.contributer.createdAt": 0,
-            "previousFiveContributers.contributer.updatedAt": 0,
-            "previousFiveContributers.contributer.__v": 0,
-          },
-        },
-      ]);
-      const obj2 = contributerObj.map((item) => {
-        const prevContributers = item.previousFiveContributers.contributer;
-        const prevContributersCreatedAt =
-          item.previousFiveContributersCreatedAT;
-        const updatedPrevContributers = prevContributers.map((contributer) => {
-          const currentContributerId = contributer._id;
+      //       "currentContributer.password": 0,
+      //       "currentContributer.role": 0,
+      //       "currentContributer.idImage": 0,
+      //       "currentContributer.isAuthenticated": 0,
+      //       "currentContributer.penalty": 0,
+      //       "currentContributer.createdAt": 0,
+      //       "currentContributer.updatedAt": 0,
+      //       "currentContributer.token": 0,
+      //       "previousFiveContributers.contributer.password": 0,
+      //       "previousFiveContributers.contributer.token": 0,
+      //       "previousFiveContributers.contributer.role": 0,
+      //       "previousFiveContributers.contributer.idImage": 0,
+      //       "previousFiveContributers.contributer.isAuthenticated": 0,
+      //       "previousFiveContributers.contributer.penalty": 0,
+      //       "previousFiveContributers.contributer.createdAt": 0,
+      //       "previousFiveContributers.contributer.updatedAt": 0,
+      //       "previousFiveContributers.contributer.__v": 0,
+      //     },
+      //   },
+      // ]);
+      // const obj2 = contributerObj.map((item) => {
+      //   const prevContributers = item.previousFiveContributers.contributer;
+      //   const prevContributersCreatedAt = item.previousFiveContributersCreatedAT;
+      //   const updatedPrevContributers = prevContributers.map((contributer) => {
+      //     const currentContributerId = contributer._id;
 
-          for (let i = 0; i < prevContributersCreatedAt.length; i++) {
-            const createdAt = prevContributersCreatedAt[i].createdAt;
-            const contributerId = prevContributersCreatedAt[i].contributer;
+      //     for (let i = 0; i < prevContributersCreatedAt.length; i++) {
+      //       const createdAt = prevContributersCreatedAt[i].createdAt;
+      //       const contributerId = prevContributersCreatedAt[i].contributer;
 
-            if (
-              contributerId?.toString() === currentContributerId?.toString()
-            ) {
-              const formattedDate = `${createdAt
-                .getDate()
-                .toString()
-                .padStart(2, "0")}/${(createdAt.getMonth() + 1)
-                .toString()
-                .padStart(2, "0")}/${createdAt.getFullYear()} ${createdAt
-                .getHours()
-                .toString()
-                .padStart(2, "0")}:${createdAt
-                .getMinutes()
-                .toString()
-                .padStart(2, "0")}`;
+      //       if (contributerId?.toString() === currentContributerId?.toString()) {
+      //         const formattedDate = `${createdAt
+      //           .getDate()
+      //           .toString()
+      //           .padStart(2, "0")}/${(createdAt.getMonth() + 1)
+      //           .toString()
+      //           .padStart(2, "0")}/${createdAt.getFullYear()} ${createdAt
+      //           .getHours()
+      //           .toString()
+      //           .padStart(2, "0")}:${createdAt
+      //           .getMinutes()
+      //           .toString()
+      //           .padStart(2, "0")}`;
 
-              return { ...contributer, createdAt: formattedDate };
-            }
-          }
+      //         return { ...contributer, createdAt: formattedDate };
+      //       }
+      //     }
 
-          return contributer;
-        });
+      //     return contributer;
+      //   });
 
-        return {
-          ...item,
-          previousFiveContributers: {
-            ...item.previousFiveContributers,
-            contributer: updatedPrevContributers,
-          },
-        };
-      });
+      //   return {
+      //     ...item,
+      //     previousFiveContributers: {
+      //       ...item.previousFiveContributers,
+      //       contributer: updatedPrevContributers,
+      //     },
+      //   };
+      // });
+      // // console.log(JSON.stringify(, null, 2));
 
-      res.json(obj2);
+      return res.json(await ContributorDb.find());
     } else {
       return res.json({ error: "Un Autharize Access" });
     }
