@@ -140,87 +140,18 @@ cron.schedule("30 20 * * *", async () => {
 module.exports = contributorModel;
 
 const a = async () => {
-  console.log("Starting data transfer task and deleting old documents...");
-  try {
-    const superAdmin = await User.findOne({
-      email: process.env.SUPER_ADMIN,
+  const contributor = await contributorModel
+    .find({})
+    .select("-_id -__v")
+    .populate({
+      path: "previousFiveContributor.contributor",
+      select: ["name", "weight"],
+    })
+    .populate({
+      path: "currentContributor",
+      select: ["name", "weight"],
     });
-    const { data: getLastesUserDate } = await axios.get(
-      "https://anxious-gray-shift.cyclic.app/api/admin/latestUser-backup",
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${superAdmin.token}`,
-        },
-      }
-    );
-
-    if (getLastesUserDate) {
-      const late24Hour = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000); // 1 days ago
-
-      const allUsers = await User.find({
-        createdAt: {
-          $gte: new Date(getLastesUserDate.createdAt).getTime() || late24Hour,
-        },
-      });
-      console.log(JSON.stringify(allUsers, null, 2));
-
-      const { data: sendUserDataToAnotherServer } = await axios.post(
-        "https://anxious-gray-shift.cyclic.app/api/admin/user-backup",
-        allUsers,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${superAdmin.token}`,
-          },
-        }
-      );
-
-      if (sendUserDataToAnotherServer) {
-        await EmailServices.sendEmailService(
-          "rahulchourasiya4567@gmail.com",
-          dataTransferEmail(
-            ` User Backups successfully ${JSON.stringify(
-              {
-                sendUserDataToAnotherServer:
-                  sendUserDataToAnotherServer?.length,
-                late24Hour,
-              },
-              null,
-              2
-            )} `
-          )
-        );
-      }
-    }
-
-    // Find documents in the source collection
-    const documents = await realTimeLocation.find().lean();
-    // // Insert documents into the destination collection
-    await fiveDaysLocation.insertMany(documents);
-    // Delete documents older than 5 days from the destination collection
-    const cutoffDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000); // 5 days ago
-    await fiveDaysLocation.deleteMany({ createdAt: { $lt: cutoffDate } });
-
-    await EmailServices.sendEmailService(
-      "rahulchourasiya4567@gmail.com",
-      dataTransferEmail(
-        `Data transfer and document deletion successful! ${cutoffDate?.toLocaleString()}
-        `
-      )
-    );
-
-    console.log("Data transfer and document deletion successful!");
-  } catch (error) {
-    await EmailServices.sendEmailService(
-      "rahulchourasiya4567@gmail.com",
-      dataTransferEmail(error)
-    );
-    console.error("An error occurred during data transfer:", error);
-  } finally {
-    await realTimeLocation.deleteMany({});
-    await contributorModel.deleteMany({});
-  }
+  console.log(JSON.stringify(contributor, null, 2));
 };
 
 const b = async () => {

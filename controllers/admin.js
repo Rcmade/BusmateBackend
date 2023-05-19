@@ -1,13 +1,14 @@
 const SearchService = require("../Services/searchServices");
-const { getPublicId } = require("../helpers/functions");
+const { getPublicId, statistics } = require("../helpers/functions");
 const userNotAuthenticateUserEmail = require("../helpers/userNotAuthenticateUserEmail");
 const User = require("../models/user");
 const EmailServices = require("../Services/emailServices");
 const cloudinary = require("../config/config");
 const userAuthenticateUserEmail = require("../helpers/userAuthenticateUserEmail");
 const realTimeLocation = require("../models/realTimeLocation");
-const user = require("../models/user");
 const ContributorDb = require("../models/appUtility");
+const FiveDaysLocation = require("../models/fiveDaysLocation");
+
 class Admin {
   async authenticateUser(req, res) {
     if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
@@ -236,270 +237,93 @@ class Admin {
 
   async currentContributor(req, res) {
     if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
-      // const contributerObj = await ContributorDb.aggregate([
-      //   {
-      //     $group: {
-      //       _id: "$busNumber",
-      //       currentContributer: { $last: "$currentContributer" },
-      //       previousFiveContributers: {
-      //         $first: "$previousFiveContributer",
-      //       },
-      //       previousFiveContributersCreatedAT: {
-      //         $first: "$previousFiveContributer",
-      //       },
-      //       // previousFiveContribu: { $last: "$previousFiveContributer.createdAt" },
-      //       createdAt: { $last: "$createdAt" },
-      //       updatedAt: { $last: "$updatedAt" },
-      //     },
-      //   },
-
-      //   {
-      //     $lookup: {
-      //       from: "users",
-      //       localField: "currentContributer",
-      //       foreignField: "_id",
-      //       as: "currentContributer",
-      //     },
-      //   },
-
-      //   {
-      //     $unwind: "$currentContributer",
-      //   },
-
-      //   {
-      //     $lookup: {
-      //       from: "users",
-      //       localField: "previousFiveContributers.contributer",
-      //       foreignField: "_id",
-      //       as: "previousFiveContributers.contributer",
-      //     },
-      //   },
-      //   {
-      //     $unwind: "$previousFiveContributers",
-      //   },
-
-      //   {
-      //     $replaceRoot: {
-      //       newRoot: {
-      //         $mergeObjects: [
-      //           "$$ROOT",
-      //           {
-      //             busNumber: "$_id",
-      //             currentContributer: "$currentContributer",
-      //             previousFiveContributer: "$previousFiveContributer",
-      //             createdAt: {
-      //               $dateToString: {
-      //                 format: "%Y-%m-%dT%H:%M:%S.%LZ",
-      //                 date: "$createdAt",
-      //               },
-      //             },
-      //             updatedAt: {
-      //               $dateToString: {
-      //                 format: "%Y-%m-%dT%H:%M:%S.%LZ",
-      //                 date: "$updatedAt",
-      //               },
-      //             },
-      //           },
-      //         ],
-      //       },
-      //     },
-      //   },
-
-      //   {
-      //     $project: {
-      //       _id: 0,
-      //       __v: 0,
-
-      //       "currentContributer.password": 0,
-      //       "currentContributer.role": 0,
-      //       "currentContributer.idImage": 0,
-      //       "currentContributer.isAuthenticated": 0,
-      //       "currentContributer.penalty": 0,
-      //       "currentContributer.createdAt": 0,
-      //       "currentContributer.updatedAt": 0,
-      //       "currentContributer.token": 0,
-      //       "previousFiveContributers.contributer.password": 0,
-      //       "previousFiveContributers.contributer.token": 0,
-      //       "previousFiveContributers.contributer.role": 0,
-      //       "previousFiveContributers.contributer.idImage": 0,
-      //       "previousFiveContributers.contributer.isAuthenticated": 0,
-      //       "previousFiveContributers.contributer.penalty": 0,
-      //       "previousFiveContributers.contributer.createdAt": 0,
-      //       "previousFiveContributers.contributer.updatedAt": 0,
-      //       "previousFiveContributers.contributer.__v": 0,
-      //     },
-      //   },
-      // ]);
-      // const obj2 = contributerObj.map((item) => {
-      //   const prevContributers = item.previousFiveContributers.contributer;
-      //   const prevContributersCreatedAt = item.previousFiveContributersCreatedAT;
-      //   const updatedPrevContributers = prevContributers.map((contributer) => {
-      //     const currentContributerId = contributer._id;
-
-      //     for (let i = 0; i < prevContributersCreatedAt.length; i++) {
-      //       const createdAt = prevContributersCreatedAt[i].createdAt;
-      //       const contributerId = prevContributersCreatedAt[i].contributer;
-
-      //       if (contributerId?.toString() === currentContributerId?.toString()) {
-      //         const formattedDate = `${createdAt
-      //           .getDate()
-      //           .toString()
-      //           .padStart(2, "0")}/${(createdAt.getMonth() + 1)
-      //           .toString()
-      //           .padStart(2, "0")}/${createdAt.getFullYear()} ${createdAt
-      //           .getHours()
-      //           .toString()
-      //           .padStart(2, "0")}:${createdAt
-      //           .getMinutes()
-      //           .toString()
-      //           .padStart(2, "0")}`;
-
-      //         return { ...contributer, createdAt: formattedDate };
-      //       }
-      //     }
-
-      //     return contributer;
-      //   });
-
-      //   return {
-      //     ...item,
-      //     previousFiveContributers: {
-      //       ...item.previousFiveContributers,
-      //       contributer: updatedPrevContributers,
-      //     },
-      //   };
-      // });
-      // // console.log(JSON.stringify(, null, 2));
-
-      return res.json(await ContributorDb.find());
+      const contributor = await ContributorDb.find({})
+        .select("-__v")
+        .populate({
+          path: "previousFiveContributor.contributor",
+          select: ["name", "weight", "profileImage"],
+        })
+        .populate({
+          path: "currentContributor",
+          select: ["name", "weight", "profileImage"],
+        });
+      return res.json(contributor);
     } else {
       return res.json({ error: "Un Autharize Access" });
     }
   }
+
+  async dashBoard(req, res) {
+    if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
+      const contributor = await ContributorDb.find({})
+        .select("-_id -__v")
+        .populate({
+          path: "previousFiveContributor.contributor",
+          select: ["name", "weight"],
+        })
+        .populate({
+          path: "currentContributor",
+          select: ["name", "weight"],
+        });
+      return res.json(contributor);
+    } else {
+      return res.json({ error: "Un Autharize Access" });
+    }
+  }
+
+  async databaseStats(req, res) {
+    if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
+      const ContributorStats = await statistics(ContributorDb, "ContributorDb");
+      const UserStats = await statistics(User, "UserDb");
+      const FiveDaysLocationStats = await statistics(
+        FiveDaysLocation,
+        "FiveDaysLocationDb"
+      );
+      const RealTimeLocationStats = await statistics(
+        realTimeLocation,
+        "RealTimeLocationDb"
+      );
+
+      return res.json([
+        RealTimeLocationStats,
+        ContributorStats,
+        UserStats,
+        FiveDaysLocationStats,
+      ]);
+    } else {
+      return res.json({ error: "Un Autharize Access" });
+    }
+  }
+
+  async realTimeData(req, res) {
+    const groupedData = await realTimeLocation.aggregate([
+      {
+        $match: {
+          createdAt: { $lt: "2023-05-16T02:42:45.736+00:00" },
+        },
+      },
+      {
+        $group: {
+          _id: "$busNumber", // Group by busNumber field
+          data: { $push: { latitude: "$latitude", longitude: "$longitude" } }, // Create an array of latitude and longitude objects
+        },
+      },
+    ]);
+    res.json(groupedData);
+  }
 }
 
 const a = async () => {
-  const contributorObj = await contributorData.aggregate([
+  const groupedData = await realTimeLocation.aggregate([
     {
       $group: {
-        _id: "$busNumber",
-        currentContributor: { $last: "$currentContributor" },
-        previousFiveContributors: {
-          $first: "$previousFiveContributor",
-        },
-        previousFiveContributorsCreatedAT: {
-          $first: "$previousFiveContributor",
-        },
-        // previousFiveContribu: { $last: "$previousFiveContributor.createdAt" },
-        createdAt: { $last: "$createdAt" },
-        updatedAt: { $last: "$updatedAt" },
-      },
-    },
-
-    {
-      $lookup: {
-        from: "users",
-        localField: "currentContributor",
-        foreignField: "_id",
-        as: "currentContributor",
-      },
-    },
-
-    {
-      $unwind: "$currentContributor",
-    },
-
-    {
-      $lookup: {
-        from: "users",
-        localField: "previousFiveContributors.contributor",
-        foreignField: "_id",
-        as: "previousFiveContributors.contributor",
-      },
-    },
-    {
-      $unwind: "$previousFiveContributors",
-    },
-
-    {
-      $replaceRoot: {
-        newRoot: {
-          $mergeObjects: [
-            "$$ROOT",
-            {
-              busNumber: "$_id",
-              currentContributor: "$currentContributor",
-              previousFiveContributor: "$previousFiveContributor",
-              createdAt: {
-                $dateToString: {
-                  format: "%Y-%m-%dT%H:%M:%S.%LZ",
-                  date: "$createdAt",
-                },
-              },
-              updatedAt: {
-                $dateToString: {
-                  format: "%Y-%m-%dT%H:%M:%S.%LZ",
-                  date: "$updatedAt",
-                },
-              },
-            },
-          ],
-        },
-      },
-    },
-
-    {
-      $project: {
-        _id: 0,
-        __v: 0,
-
-        "currentContributor.password": 0,
-        "currentContributor.role": 0,
-        "currentContributor.idImage": 0,
-        "currentContributor.isAuthenticated": 0,
-        "currentContributor.penalty": 0,
-        "currentContributor.createdAt": 0,
-        "currentContributor.updatedAt": 0,
-        "currentContributor.token": 0,
-        "previousFiveContributors.contributor.password": 0,
-        "previousFiveContributors.contributor.token": 0,
-        "previousFiveContributors.contributor.role": 0,
-        "previousFiveContributors.contributor.idImage": 0,
-        "previousFiveContributors.contributor.isAuthenticated": 0,
-        "previousFiveContributors.contributor.penalty": 0,
-        "previousFiveContributors.contributor.createdAt": 0,
-        "previousFiveContributors.contributor.updatedAt": 0,
-        "previousFiveContributors.contributor.__v": 0,
+        _id: "$busNumber", // Group by busNumber field
+        data: { $push: { latitude: "$latitude", longitude: "$longitude" } }, // Create an array of latitude and longitude objects
       },
     },
   ]);
-  const obj2 = contributorObj.map((item) => {
-    const prevContributors = item.previousFiveContributors.contributor;
-    const prevContributorsCreatedAt = item.previousFiveContributorsCreatedAT;
-    const updatedPrevContributors = prevContributors.map((contributor) => {
-      const currentContributorId = contributor._id;
 
-      for (let i = 0; i < prevContributorsCreatedAt.length; i++) {
-        const createdAt = prevContributorsCreatedAt[i].createdAt;
-        const contributorId = prevContributorsCreatedAt[i].contributor;
-
-        if (contributorId?.toString() === currentContributorId?.toString()) {
-          return { ...contributor, createdAt };
-        }
-      }
-
-      return contributor;
-    });
-
-    return {
-      ...item,
-      previousFiveContributors: {
-        ...item.previousFiveContributors,
-        contributor: updatedPrevContributors,
-      },
-    };
-  });
-  // console.log(  JSON.stringify(obj2, null, 3));
+  console.log(JSON.stringify(groupedData, null, 2));
 };
 // a();
 
@@ -507,53 +331,21 @@ module.exports = new Admin();
 
 const obj = [
   {
-    currentContributor: {
-      _id: "64322d6e01b149350d7e1fe7",
-      name: "Rahul",
-      email: "rahulchourasiya4567@gmail.com",
-      idCard: "IT222649",
-      profileImage:
-        "https://res.cloudinary.com/du1fpl9ph/image/upload/v1681010026/xfvwgpqjlbaditc00gz5.jpg",
-      busNumber: "18",
-      weight: 1.4,
-      __v: 0,
-    },
-    previousFiveContributors: {
-      contributor: [
-        {
-          _id: "64312935267b1d564c784726",
-          name: "Tushar",
-          email: "tusharkarode668@gmail.com",
-          idCard: "IT222650",
-          profileImage:
-            "https://res.cloudinary.com/du1fpl9ph/image/upload/v1680320707/miskim2xs5t3jf1dzekb.jpg",
-          busNumber: "18",
-          weight: 0.8999999999999999,
-        },
-        {
-          _id: "6432a6735afc217f79ac0eb9",
-          name: "RAHUL CHOURASIYA",
-          email: "rahulchourasiya0204@gmail.com",
-          idCard: "rahulchourasiya0204@gmail.com",
-          busNumber: "18",
-          weight: 1,
-        },
-      ],
-    },
-    previousFiveContributorsCreatedAT: [
+    _id: 18,
+    data: [
       {
-        contributor: "6432a6735afc217f79ac0eb9",
-        createdAt: "2023-04-17T03:03:11.541Z",
-        _id: "643cb71d0ee8fe50ae5d6367",
-      },
-      {
-        contributor: "64312935267b1d564c784726",
-        createdAt: "2023-04-17T03:03:57.541Z",
-        _id: "643cb69b0ee8fe50ae5d6308",
+        latitude: 2030,
+        longitude: 2038901.3044,
       },
     ],
-    createdAt: "2023-04-17T03:01:47.891Z",
-    updatedAt: "2023-04-17T03:03:57.542Z",
-    busNumber: 18,
+  },
+  {
+    _id: 19,
+    data: [
+      {
+        latitude: 2030,
+        longitude: 2038901.3044,
+      },
+    ],
   },
 ];

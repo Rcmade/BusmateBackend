@@ -76,10 +76,32 @@ const isCurrentContributorAvailable = async (latestLocationDate) => {
   return isLastLocation2Min;
 };
 
+const statistics = async (database, dbName = "notGiven") => {
+  const data = await database.collection.stats(1024);
+
+  const formatSize = (size) => {
+    if (size >= 1024 * 1024) {
+      return (size / (1024 * 1024)).toFixed(2) + " MB";
+    } else if (size >= 1024) {
+      return (size / 1024).toFixed(2) + " KB";
+    } else {
+      return size.toFixed(2) + " bytes";
+    }
+  };
+
+  return {
+    dbName,
+    totalSize: formatSize(data.totalSize),
+    totalDocuments: data?.count,
+    freeStorageSize: formatSize(data.freeStorageSize),
+  };
+};
+
 module.exports = {
   calculateDistance,
   dynamicSort,
   parseQuery,
   getPublicId,
   isCurrentContributorAvailable,
+  statistics,
 };

@@ -16,24 +16,8 @@ router.post("/nginx-error", isAuth, Admin.nginxError);
 router.get("/remove-realtime-location", isAuth, Admin.removeRealTimeLocation);
 router.get("/remove-contributor", isAuth, Admin.removeContributorDb);
 router.get("/current-contributors", isAuth, Admin.currentContributor);
-const FiveDaysLocation = require("../models/fiveDaysLocation");
+router.get("/db-status", isAuth, Admin.databaseStats);
 
-router.get("/get", async (req, res) => {
-  FiveDaysLocation.aggregate([
-    {
-      $group: {
-        _id: "$busNumber",
-        locations: { $push: "$$ROOT" },
-      },
-    },
-  ]).exec((err, result) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    return res.json(result);
-  });
-});
+router.get("/get", Admin.realTimeData);
 
 module.exports = router;
