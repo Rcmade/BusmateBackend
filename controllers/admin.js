@@ -88,7 +88,10 @@ class Admin {
   }
 
   async createUser(req, res) {
-    if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
+    if (
+      (req.user.role === "superAdmin" || req.user.role === "admin") &&
+      req.user.isAuthenticated === true
+    ) {
       console.log("HIT SIGNUP");
       // console.log({ body: req.body, file: req.files });
       // res.json({ data: "You Hit" });

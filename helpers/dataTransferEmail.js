@@ -8,7 +8,7 @@ const dataTransferEmail = (message) => {
   </head>
 
   <body style="background: #161f33">
-    ${message}
+ <pre>   ${message} </pre>
   </body>
 </html>
 `;

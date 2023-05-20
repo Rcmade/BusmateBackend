@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const FiveDaysLocation = new mongoose.Schema({
+const FiveDaysLocationSchema = new mongoose.Schema({
   latitude: {
     type: Number,
     trim: true,
@@ -31,4 +31,6 @@ const FiveDaysLocation = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("FiveDaysLocation", FiveDaysLocation);
+module.exports = { FiveDaysLocationSchema };
+
+module.exports = mongoose.model("FiveDaysLocation", FiveDaysLocationSchema);
