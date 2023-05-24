@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const http = require("http"); // import http module
 const cluster = require("cluster");
 const os = require("os");
+const fs = require("fs");
 
 const authRoutes = require("./routes/auth");
 const locationRoutes = require("./routes/locationRoute");
@@ -14,6 +15,7 @@ const { errorHandler } = require("./middlewares/error");
 const morgan = require("morgan");
 var bodyParser = require("body-parser");
 const helmet = require("helmet");
+const path = require("path");
 
 const app = express();
 // const corsOption = {
@@ -27,12 +29,28 @@ const server = http.createServer(app);
 
 require("./Db/db");
 
+// Create a write stream (in append mode) to a log file
+// const accessLogStream = fs.createWriteStream("access.log", { flags: "a" });
+
 // middlewares
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
-app.use(morgan("dev"));
+// // Morgan middleware setup with the file stream
+// app.use(morgan("combined", { stream: accessLogStream }));
+app.use(morgan("combined"));
+
+// const logDirectory = path.join(__dirname, "logs");
+// fs.mkdirSync(logDirectory, { recursive: true });
+
+// const accessLogStream = fs.createWriteStream(
+//   path.join(logDirectory, "access.log"),
+//   { flags: "a" }
+// );
+
+// app.use(morgan("combined", { stream: accessLogStream }));
+
 app.use(helmet());
 
 // route middlewares

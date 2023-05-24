@@ -346,91 +346,16 @@ const changeContributor = async (req, res) => {
 };
 
 const a = async () => {
-  // this function runs when contributre  turn off there location
-  // const { _id, busNumber } = req.body;
-  // const { _id, busNumber } = req.body;
   const busNumber = 18;
-  const _id = "645db024e5813179f8642099";
-  const getContributor = await contributorData
-    .findOne({ busNumber })
-    .select("currentContributor previousFiveContributor _id busNumber");
-  res.json({ youAreDone: false });
+  const getCurrentContributor = await RealTimeLocation.find({
+    createdAt: { $gt: "2023-05-23T02:36:16.780+00:00" },
+    busNumber: +busNumber,
+  })
+    .select("-_id longitude latitude heading createdAt")
+    .sort({ createdAt: 1 })
+    .lean();
 
-  if (getContributor) {
-    // if any user from  PreviousFiveContributor turn off there location the remove them from the previous five arr
-    if (getContributor.previousFiveContributor?.length) {
-      const findFromPreviousFiveContributor =
-        getContributor.previousFiveContributor.find((i) => {
-          return String(i.contributor) === String(_id);
-        });
-
-      if (getContributor?.currentContributor.toString() === _id.toString()) {
-        // Sort the contributors by their createdAt timestamp
-        const resetContributor = await dynamicSort(
-          getContributor.previousFiveContributor
-        );
-
-        // this runs when current contributor turn off there location
-        // we choose the latest contributor from the previous contributor  which is store in getAndRemoveContributor variable
-        const getAndRemoveContributor = resetContributor.shift();
-        console.log(JSON.stringify(getContributor, null, 2));
-        // console.log(JSON.stringify(getAndRemoveContributor, null, 2));
-        // After sorting , currentContributor  privous contributor converted into current contribuer and remove currentContributor from the database because currentContributor turn of their location
-        await contributorData.findOneAndUpdate(
-          {
-            busNumber,
-          },
-          {
-            $set: {
-              // new Contributor
-              currentContributor: getAndRemoveContributor.contributor,
-              previousFiveContributor: [
-                // Previous five contributor
-                ...resetContributor,
-              ],
-              busNumber: getContributor.busNumber,
-            },
-          },
-          {
-            // It will return the new contributor document
-            new: true,
-          }
-        );
-
-        return;
-        //  res.json({ youAreDone: true });
-      } else if (findFromPreviousFiveContributor) {
-        // console.log(JSON.stringify(findFromPreviousFiveContributor, null, 2));
-        await contributorData.findOneAndUpdate(
-          {
-            busNumber,
-          },
-          {
-            $set: {
-              // new Contributor
-              previousFiveContributor: [
-                // remove previous contributor who turn off their location
-                ...getContributor.previousFiveContributor.filter(
-                  (i) => i.contributor.toString() !== _id.toString()
-                ),
-              ],
-            },
-          }
-        );
-        return;
-      }
-    } else {
-      await contributorData.findOneAndDelete({
-        busNumber,
-      });
-      // return res.json({ youAreDone: true });
-      return;
-    }
-  } else {
-    return res.json({ youAreDone: false });
-  }
-
-  return;
+  console.log(JSON.stringify(getCurrentContributor, null, 2));
 };
 
 // a();
