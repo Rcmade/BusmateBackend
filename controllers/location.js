@@ -42,7 +42,7 @@ const addNewLocation = async (req, res) => {
   } else {
     console.log("Not Matches current contributor");
     // find from the previous contributor because if current user is unavailable the we get location from the previous contributor
-    const isPrevious = getCurrentContributor?.previousFiveContributor.find(
+    const isPrevious = getCurrentContributor?.previousFiveContributor?.find(
       (data) => {
         // console.log(data.contributor, _id);
         return data.contributor?.toString() === _id;
