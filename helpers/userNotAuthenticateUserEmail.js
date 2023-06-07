@@ -34,7 +34,7 @@ const userNotAuthenticateUserEmail = (
               <tr>
                 <td class="align-center">
                   <img
-                    src="https://res.cloudinary.com/du1fpl9ph/image/upload/v1680269961/BusmateLogo_frbuvl.png"
+                    src="https://res.cloudinary.com/du1fpl9ph/image/upload/v1686144628/BusmateTransparent512_512Logo_ugiflk.png"
                     height="80"
                     alt="Busmate"
                   />
