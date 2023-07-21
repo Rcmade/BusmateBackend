@@ -58,11 +58,10 @@ app.use("/api", authRoutes);
 app.use("/api", locationRoutes);
 app.use("/api/admin", adminRoutes);
 
-// console.log(path.join(__dirname, "/test.html"));
 
-// app.get("/", function (req, res) {
-//   res.sendFile(path.join(__dirname, "/test.html"));
-// });
+app.get("/logs", function (req, res) {
+  res.sendFile(path.join(__dirname, "/logs/access.log"));
+});
 
 app.use(errorHandler);
 const numCPUs = os.cpus().length;
