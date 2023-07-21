@@ -8,8 +8,6 @@ class HashService {
       .digest("hex");
     return hash;
   }
-
-  
 }
 
 module.exports = new HashService();

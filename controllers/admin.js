@@ -48,7 +48,7 @@ class Admin {
             if (error) {
               console.log(error);
             } else {
-              console.log(result);
+              // console.log(result);
             }
           }
         );
@@ -58,7 +58,7 @@ class Admin {
             if (error) {
               console.log(error);
             } else {
-              console.log(result);
+              // console.log(result);
             }
           }
         );
@@ -92,10 +92,6 @@ class Admin {
       (req.user.role === "superAdmin" || req.user.role === "admin") &&
       req.user.isAuthenticated === true
     ) {
-      console.log("HIT SIGNUP");
-      // console.log({ body: req.body, file: req.files });
-      // res.json({ data: "You Hit" });
-
       const files = req.files;
       try {
         // validation
@@ -105,7 +101,6 @@ class Admin {
           const results = [];
           if (files?.length) {
             for (const file of files) {
-              console.log(file);
               const b64 = Buffer.from(file.buffer).toString("base64");
               let dataURI = "data:" + file.mimetype + ";base64," + b64;
               // console.log(dataURI);
@@ -161,10 +156,7 @@ class Admin {
   async allUserView(req, res) {
     if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
       // if query is number then convert it into number from string even query is object of objects
-      console.log("req.query,", req.query);
       const parsedQuery = await JSON.parse(req.query.data);
-
-      console.log(parsedQuery, parsedQuery["sorting"]);
 
       const data = await SearchService.adminPagination(
         parsedQuery["page"],
@@ -208,7 +200,6 @@ class Admin {
         busNumber: +req.query.busNumber,
       });
 
-      console.log(JSON.stringify(deleteRealTime, null, 2));
       return res.json({
         message: `Document has been deleted from RealTimeLocation DataBase for busNumber ${+req
           .query.busNumber} and Total length of documents is ${
@@ -326,7 +317,6 @@ const a = async () => {
     },
   ]);
 
-  console.log(JSON.stringify(groupedData, null, 2));
 };
 // a();
 

@@ -42,3 +42,5 @@ const realTimeLocation = new mongoose.Schema({
 });
 
 module.exports = mongoose.model("RealtimeLocation", realTimeLocation);
+
+module.exports.realTimeLocation = realTimeLocation;

@@ -10,7 +10,6 @@ const EmailServices = require("../Services/emailServices");
 const emailHtml = require("../helpers/emailHtml");
 
 const signup = async (req, res) => {
-  console.log("HIT SIGNUP");
   // console.log({ body: req.body, file: req.files });
   // res.json({ data: "You Hit" });
 
@@ -34,7 +33,6 @@ const signup = async (req, res) => {
       const results = [];
 
       for (const file of files) {
-        console.log(file);
         const b64 = Buffer.from(file.buffer).toString("base64");
         let dataURI = "data:" + file.mimetype + ";base64," + b64;
         // console.log(dataURI);
@@ -146,13 +144,11 @@ const verifyOtp = async (req, res) => {
 };
 
 const signin = async (req, res) => {
-  console.log({ body: req.body });
 
   try {
     const { email, password } = req.body;
     // check if our db has user with that email
     let user = await User.findOne({ $or: [{ email }, { idCard: email }] });
-    console.log({ user });
     if (!user) {
       return res.json({
         error: "No user found",
@@ -207,7 +203,6 @@ const userInitialRoute = async (req, res) => {
 const forgotPassword = async (req, res) => {
   const { email, password } = req.body;
   // find user by email
-  console.log(req.body);
   const updateUser = await User.findOneAndUpdate(
     { email },
     { $set: { password } }

@@ -29,7 +29,6 @@ const addNewLocation = async (req, res) => {
   // console.log({ _id, getCurrentContributor });
   // because after assigning the user we want to store data only who becomes a contributor from the assing method
   if (getCurrentContributor?.currentContributor?.toString() === _id) {
-    console.log("Matches current contributor");
     await RealTimeLocation.create({
       latitude: +latitude || 0,
       longitude: +longitude || 0,
@@ -40,7 +39,6 @@ const addNewLocation = async (req, res) => {
     });
     return res.json({ previous: false, wait: false });
   } else {
-    console.log("Not Matches current contributor");
     // find from the previous contributor because if current user is unavailable the we get location from the previous contributor
     const isPrevious = getCurrentContributor?.previousFiveContributor?.find(
       (data) => {
@@ -49,7 +47,6 @@ const addNewLocation = async (req, res) => {
       }
     );
 
-    console.log({ isPrevious });
     if (isPrevious) {
       // await RealTimeLocation.create({
       return res.json({ previous: true, wait: true });
@@ -74,7 +71,6 @@ const asignContributor = async (req, res) => {
 
   // IF there is no data present in database which means it is the first contributar for that bus
   if (!findBusNo.length) {
-    console.log("inside length of buses");
     const createFirstContributor = await contributorData.create({
       busNumber,
       currentContributor: _id,
@@ -97,7 +93,6 @@ const asignContributor = async (req, res) => {
       longitude1,
       longitude
     );
-    console.log(distance, "Meters");
 
     const contributerWeight = findBusNo[0].contributor.weight;
     const contributors = findBusNo[0].ms;
@@ -206,22 +201,22 @@ const asignContributor = async (req, res) => {
           new: true,
         }
       );
-      console.log(
-        JSON.stringify(
-          {
-            updateContributor,
-            getContributor,
-            resetContributor,
-            previous:
-              getNewUserWeight > getContributerWeight || !lastLocationTime
-                ? false
-                : true,
-            assigned: true,
-          },
-          null,
-          2
-        )
-      );
+      // console.log(
+      //   JSON.stringify(
+      //     {
+      //       updateContributor,
+      //       getContributor,
+      //       resetContributor,
+      //       previous:
+      //         getNewUserWeight > getContributerWeight || !lastLocationTime
+      //           ? false
+      //           : true,
+      //       assigned: true,
+      //     },
+      //     null,
+      //     2
+      //   )
+      // );
       return res.json({
         previous:
           getNewUserWeight > getContributerWeight || !lastLocationTime
@@ -248,7 +243,7 @@ const asignContributor = async (req, res) => {
 };
 
 const getNewLocation = async (req, res) => {
-  console.log("data", req.query);
+  // console.log("data", req.query);
   const { date, busNumber } = req.query;
   const getCurrentContributor = await RealTimeLocation.find({
     createdAt: { $gt: date },
@@ -286,7 +281,7 @@ const changeContributor = async (req, res) => {
         // this runs when current contributor turn off there location
         // we choose the latest contributor from the previous contributor  which is store in getAndRemoveContributor variable
         const getAndRemoveContributor = resetContributor.shift();
-        console.log(JSON.stringify(getContributor, null, 2));
+        // console.log(JSON.stringify(getContributor, null, 2));
         // console.log(JSON.stringify(getAndRemoveContributor, null, 2));
         // After sorting , currentContributor  privous contributor converted into current contribuer and remove currentContributor from the database because currentContributor turn of their location
         await contributorData.findOneAndUpdate(
@@ -355,7 +350,7 @@ const a = async () => {
     .sort({ createdAt: 1 })
     .lean();
 
-  console.log(JSON.stringify(getCurrentContributor, null, 2));
+  // console.log(JSON.stringify(getCurrentContributor, null, 2));
 };
 
 // a();

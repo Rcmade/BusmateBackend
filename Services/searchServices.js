@@ -2,7 +2,6 @@ const User = require("../models/user");
 
 class SearchService {
   async adminSearch(searchText) {
-    console.log(searchText);
     const searchFields = ["name", "email", "idCard", "busNumber"];
     const orList = [];
     for (const field of searchFields) {

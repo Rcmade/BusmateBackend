@@ -39,17 +39,17 @@ app.use(cookieParser());
 app.use(cors());
 // // Morgan middleware setup with the file stream
 // app.use(morgan("combined", { stream: accessLogStream }));
-app.use(morgan("combined"));
+// app.use(morgan("combined"));
 
-// const logDirectory = path.join(__dirname, "logs");
-// fs.mkdirSync(logDirectory, { recursive: true });
+const logDirectory = path.join(__dirname, "logs");
+fs.mkdirSync(logDirectory, { recursive: true });
 
-// const accessLogStream = fs.createWriteStream(
-//   path.join(logDirectory, "access.log"),
-//   { flags: "a" }
-// );
+const accessLogStream = fs.createWriteStream(
+  path.join(logDirectory, "access.log"),
+  { flags: "a" }
+);
 
-// app.use(morgan("combined", { stream: accessLogStream }));
+app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(helmet());
 

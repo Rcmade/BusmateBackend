@@ -1,7 +1,8 @@
 const express = require("express");
 
 const router = express.Router();
-const { isAuth } = require("../middlewares/isAuth");
+const { isAuth 
+} = require("../middlewares/isAuth");
 const Admin = require("../controllers/admin");
 const upload = require("../middlewares/storage");
 const { backupMiddleware } = require("../middlewares/backupMiddleware");
