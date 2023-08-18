@@ -11,7 +11,9 @@ exports.isAuth = async (req, res, next) => {
     if (getUser) {
       // console.log("getUser", getUser);
       const { _id } = decode;
-      const user = await User.findById(_id);
+      const user = await User.findById(_id).select(
+        "name _id email idCard profileImage busNumber weight isAuthenticated token photo"
+      );
       if (!user) return res.json({ error: "Invalid Token. Please Login" });
       req.user = user;
     } else {

@@ -15,16 +15,17 @@ const userSchema = new Schema(
       required: function () {
         return this.role !== "driver";
       },
+      unique: true,
     },
 
-    password: {
-      type: String,
-      required: function () {
-        return this.role !== "driver";
-      },
-      min: 6,
-      max: 64,
-    },
+    // password: {
+    //   type: String,
+    //   // required: function () {
+    //   //   return this.role !== "driver";
+    //   // },
+    //   // min: 6,
+    //   // max: 64,
+    // },
 
     role: {
       type: String,
@@ -49,22 +50,24 @@ const userSchema = new Schema(
       },
     },
 
+    photo: {
+      type: String,
+    },
+
     idImage: {
       type: String,
       trim: true,
-      required: function () {
-        return this.role !== "driver";
-      },
+      // required: function () {
+      //   return this.role !== "driver";
+      // },
+
+      default: null,
     },
 
     busNumber: {
       type: String,
       trim: true,
       required: true,
-      enum: [
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-        21, 23, 24, 25,
-      ],
       default: 1,
     },
 
@@ -91,22 +94,22 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-userSchema.pre("findOneAndUpdate", async function (next) {
-  if (this.getUpdate()?.$set.password) {
-    this._update.$set.password = await bcrypt.hash(
-      this.getUpdate()?.$set.password,
-      12
-    );
-  }
-  next();
-});
+// userSchema.pre("findOneAndUpdate", async function (next) {
+//   if (this.getUpdate()?.$set.password) {
+//     this._update.$set.password = await bcrypt.hash(
+//       this.getUpdate()?.$set.password,
+//       12
+//     );
+//   }
+//   next();
+// });
 
-userSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
-    this.password = await bcrypt.hash(this.password, 12);
-  }
-  next();
-});
+// userSchema.pre("save", async function (next) {
+//   if (this.isModified("password")) {
+//     this.password = await bcrypt.hash(this.password, 12);
+//   }
+//   next();
+// });
 
 module.exports = mongoose.model("User", userSchema);
 

@@ -16,16 +16,16 @@ const signup = async (req, res) => {
   const files = req.files;
   try {
     // validation
-    const { name, email, password, idCard, busNumber } = req.body;
+    const { name, email, idCard, busNumber, photo } = req.body;
 
-    if (!name || !password || !email || !busNumber || !idCard) {
+    if (!name || !email || !busNumber || !idCard) {
       return res.json({ error: "All fields are required" });
     }
 
-    const exist = await User.findOne({ idCard });
+    const exist = await User.findOne({ $or: [{ email }, { idCard }] });
     if (exist) {
       return res.json({
-        error: "This Id Card Is Already Registered",
+        error: "This Id Card or Email Is Already Registered",
       });
     }
 
@@ -56,9 +56,11 @@ const signup = async (req, res) => {
       const user = await new User({
         name,
         email,
-        password,
+        // password,
         idCard,
         busNumber,
+
+        photo,
         ...imgsObj,
       }).save();
 
@@ -77,7 +79,7 @@ const signup = async (req, res) => {
       );
 
       res.cookie("login", token, {
-        maxAge: 1000 * 60 * 60 * 24 * 30,
+        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
         httpOnly: true,
       });
 
@@ -144,9 +146,8 @@ const verifyOtp = async (req, res) => {
 };
 
 const signin = async (req, res) => {
-
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
     // check if our db has user with that email
     let user = await User.findOne({ $or: [{ email }, { idCard: email }] });
     if (!user) {
@@ -155,12 +156,12 @@ const signin = async (req, res) => {
       });
     }
     // check password
-    const match = await comparePassword(password, user.password);
-    if (!match) {
-      return res.json({
-        error: "Invalid Email or Password",
-      });
-    }
+    // const match = await comparePassword(password, user.password);
+    // if (!match) {
+    //   return res.json({
+    //     error: "Invalid Email or Password",
+    //   });
+    // }
     // create signed token
     const token = jwt.sign(
       {
@@ -175,14 +176,17 @@ const signin = async (req, res) => {
     );
 
     res.cookie("login", token, {
-      maxAge: 1000 * 60 * 60 * 24 * 30,
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
       httpOnly: true,
     });
-    await User.findByIdAndUpdate(user._id, { $set: { token: token } });
-    user.password = undefined;
+    const updatedUser = await User.findByIdAndUpdate(user._id, {
+      $set: { token: token },
+    }).select(
+      "name _id email idCard profileImage busNumber weight isAuthenticated photo"
+    );
     return res.json({
       token,
-      user,
+      user: updatedUser,
     });
   } catch (err) {
     console.log(err);
@@ -258,9 +262,18 @@ const updateProfile = async (req, res) => {
         $set: req.body,
       },
       { new: true }
+    ).select(
+      "name _id email idCard profileImage busNumber weight isAuthenticated photo"
     );
 
-    return res.json({ user: user, message: "Update Successfully" });
+    if (user) {
+      return res.json({
+        user: user,
+        message: "Your Profile Has Been Updated Successfully.",
+      });
+    } else {
+      return res.json({ error: "Id not Found" });
+    }
   } catch (err) {
     console.log(err);
     return res.json({ error: err.message });

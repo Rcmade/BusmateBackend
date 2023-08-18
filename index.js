@@ -10,6 +10,7 @@ const os = require("os");
 const fs = require("fs");
 
 const authRoutes = require("./routes/auth");
+const appFeatureRoutes = require("./routes/appFeatureRoute");
 const locationRoutes = require("./routes/locationRoute");
 const { errorHandler } = require("./middlewares/error");
 const morgan = require("morgan");
@@ -41,23 +42,23 @@ app.use(cors());
 // app.use(morgan("combined", { stream: accessLogStream }));
 // app.use(morgan("combined"));
 
-const logDirectory = path.join(__dirname, "logs");
-fs.mkdirSync(logDirectory, { recursive: true });
+// const logDirectory = path.join(__dirname, "logs");
+// fs.mkdirSync(logDirectory, { recursive: true });
 
-const accessLogStream = fs.createWriteStream(
-  path.join(logDirectory, "access.log"),
-  { flags: "a" }
-);
+// const accessLogStream = fs.createWriteStream(
+//   path.join(logDirectory, "access.log"),
+//   { flags: "a" }
+// );
 
-app.use(morgan("combined", { stream: accessLogStream }));
+app.use(morgan("dev"));
 
 app.use(helmet());
 
 // route middlewares
+app.use("/api", appFeatureRoutes);
 app.use("/api", authRoutes);
 app.use("/api", locationRoutes);
 app.use("/api/admin", adminRoutes);
-
 
 app.get("/logs", function (req, res) {
   res.sendFile(path.join(__dirname, "/logs/access.log"));
