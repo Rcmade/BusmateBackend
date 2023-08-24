@@ -245,12 +245,14 @@ const asignContributor = async (req, res) => {
 const getNewLocation = async (req, res) => {
   // console.log("data", req.query);
   const { date, busNumber } = req.query;
-  const getCurrentContributor = await RealTimeLocation.find({
-    createdAt: { $gt: date },
+  const filters = {
+    ...(date ? { createdAt: { $gt: date } } : {}), // Include createdAt filter if date is provided
     busNumber: +busNumber,
-  })
+  };
+  const getCurrentContributor = await RealTimeLocation.find(filters)
     .select("-_id longitude latitude heading createdAt")
     .sort({ createdAt: 1 })
+    
     .lean();
 
   return res.json(getCurrentContributor);

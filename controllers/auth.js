@@ -256,6 +256,9 @@ const logout = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
+    if (!req.body?.name || !req.body?.busNumber) {
+      return res.json({ error: "All fields are required" });
+    }
     const user = await User.findByIdAndUpdate(
       req.user._id,
       {
