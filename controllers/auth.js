@@ -8,6 +8,7 @@ const AuthServices = require("../Services/otp");
 const hashService = require("../Services/hashService");
 const EmailServices = require("../Services/emailServices");
 const emailHtml = require("../helpers/emailHtml");
+const { OAuth2Client } = require("google-auth-library");
 
 const signup = async (req, res) => {
   // console.log({ body: req.body, file: req.files });
@@ -147,47 +148,56 @@ const verifyOtp = async (req, res) => {
 
 const signin = async (req, res) => {
   try {
-    const { email } = req.body;
-    // check if our db has user with that email
-    let user = await User.findOne({ $or: [{ email }, { idCard: email }] });
-    if (!user) {
+    const client = new OAuth2Client(process.env.WEB_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken: req.body.idToken,
+      audience: process.env.WEB_CLIENT_ID,
+    });
+
+    if (ticket.payload) {
+      // check if our db has user with that email
+      let user = await User.findOne({
+        $or: [
+          { email: ticket.payload.email },
+          { idCard: ticket.payload.email },
+        ],
+      });
+      if (!user) {
+        return res.json({
+          error: "No user found",
+        });
+      }
+      // create signed token
+      const token = jwt.sign(
+        {
+          _id: user._id,
+          email: user.email,
+          createdAt: user.createdAt,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "30d",
+        }
+      );
+
+      res.cookie("login", token, {
+        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+        httpOnly: true,
+      });
+      const updatedUser = await User.findByIdAndUpdate(user._id, {
+        $set: { token: token },
+      }).select(
+        "name _id email idCard profileImage busNumber weight isAuthenticated photo role"
+      );
       return res.json({
-        error: "No user found",
+        token,
+        user: updatedUser,
+      });
+    } else {
+      return res.json({
+        error: "Somthing went wrong please try after some time ",
       });
     }
-    // check password
-    // const match = await comparePassword(password, user.password);
-    // if (!match) {
-    //   return res.json({
-    //     error: "Invalid Email or Password",
-    //   });
-    // }
-    // create signed token
-    const token = jwt.sign(
-      {
-        _id: user._id,
-        email: user.email,
-        createdAt: user.createdAt,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "30d",
-      }
-    );
-
-    res.cookie("login", token, {
-      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-      httpOnly: true,
-    });
-    const updatedUser = await User.findByIdAndUpdate(user._id, {
-      $set: { token: token },
-    }).select(
-      "name _id email idCard profileImage busNumber weight isAuthenticated photo"
-    );
-    return res.json({
-      token,
-      user: updatedUser,
-    });
   } catch (err) {
     console.log(err);
     return res

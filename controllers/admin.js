@@ -316,29 +316,6 @@ const a = async () => {
       },
     },
   ]);
-
 };
-// a();
 
 module.exports = new Admin();
-
-const obj = [
-  {
-    _id: 18,
-    data: [
-      {
-        latitude: 2030,
-        longitude: 2038901.3044,
-      },
-    ],
-  },
-  {
-    _id: 19,
-    data: [
-      {
-        latitude: 2030,
-        longitude: 2038901.3044,
-      },
-    ],
-  },
-];

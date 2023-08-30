@@ -12,7 +12,7 @@ exports.isAuth = async (req, res, next) => {
       // console.log("getUser", getUser);
       const { _id } = decode;
       const user = await User.findById(_id).select(
-        "name _id email idCard profileImage busNumber weight isAuthenticated token photo"
+        "name _id email idCard profileImage busNumber weight isAuthenticated token photo role"
       );
       if (!user) return res.json({ error: "Invalid Token. Please Login" });
       req.user = user;
