@@ -290,20 +290,70 @@ class Admin {
   }
 
   async realTimeData(req, res) {
-    const groupedData = await realTimeLocation.aggregate([
-      {
-        $match: {
-          createdAt: { $lt: "2023-05-16T02:42:45.736+00:00" },
+    if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
+      const userRequestedData = req.query;
+      const aggregationPipeline = [];
+
+      if (Object.keys(userRequestedData).length !== 0) {
+        aggregationPipeline.push({
+          $match: {
+            busNumber: { $in: Object.keys(userRequestedData).map(Number) },
+          },
+        });
+      }
+
+      aggregationPipeline.push(
+        {
+          $group: {
+            _id: "$busNumber",
+            busData: { $push: "$$ROOT" },
+          },
         },
-      },
-      {
-        $group: {
-          _id: "$busNumber", // Group by busNumber field
-          data: { $push: { latitude: "$latitude", longitude: "$longitude" } }, // Create an array of latitude and longitude objects
-        },
-      },
-    ]);
-    res.json(groupedData);
+        {
+          $project: {
+            _id: 0,
+            busNumber: "$_id",
+            busData: {
+              $map: {
+                input: "$busData",
+                as: "entry",
+                in: {
+                  latitude: "$$entry.latitude",
+                  longitude: "$$entry.longitude",
+                  heading: "$$entry.heading",
+                  createdAt: "$$entry.createdAt",
+                },
+              },
+            },
+          },
+        }
+      );
+
+      const result = await realTimeLocation.aggregate(aggregationPipeline);
+
+      let filteredData = result;
+      if (Object.keys(userRequestedData).length !== 0) {
+        filteredData = result.map((bus) => ({
+          ...bus,
+          busData: bus.busData.filter((entry) => {
+            const requestedCreatedAt =
+              userRequestedData[entry.busNumber]?.createdAt;
+            if (requestedCreatedAt) {
+              const entryCreatedAt = new Date(entry.createdAt).getTime();
+              const requestedCreatedAtTime = new Date(
+                requestedCreatedAt
+              ).getTime();
+              return entryCreatedAt > requestedCreatedAtTime;
+            }
+            return true;
+          }),
+        }));
+      }
+
+      return res.json(filteredData);
+    } else {
+      return res.json({ error: "Un Autharize Access" });
+    }
   }
 }
 
@@ -317,5 +367,68 @@ const a = async () => {
     },
   ]);
 };
+
+const test = async () => {
+  const userRequestedData = {};
+  const aggregationPipeline = [];
+
+  if (Object.keys(userRequestedData).length !== 0) {
+    aggregationPipeline.push({
+      $match: {
+        busNumber: { $in: Object.keys(userRequestedData).map(Number) },
+      },
+    });
+  }
+
+  aggregationPipeline.push(
+    {
+      $group: {
+        _id: "$busNumber",
+        busData: { $push: "$$ROOT" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        busNumber: "$_id",
+        busData: {
+          $map: {
+            input: "$busData",
+            as: "entry",
+            in: {
+              latitude: "$$entry.latitude",
+              longitude: "$$entry.longitude",
+              heading: "$$entry.heading",
+              createdAt: "$$entry.createdAt",
+            },
+          },
+        },
+      },
+    }
+  );
+
+  const result = await realTimeLocation.aggregate(aggregationPipeline);
+
+  let filteredData = result;
+  if (Object.keys(userRequestedData).length !== 0) {
+    filteredData = result.map((bus) => ({
+      ...bus,
+      busData: bus.busData.filter((entry) => {
+        const requestedCreatedAt =
+          userRequestedData[entry.busNumber]?.createdAt;
+        if (requestedCreatedAt) {
+          const entryCreatedAt = new Date(entry.createdAt).getTime();
+          const requestedCreatedAtTime = new Date(requestedCreatedAt).getTime();
+          return entryCreatedAt > requestedCreatedAtTime;
+        }
+        return true;
+      }),
+    }));
+  }
+
+  console.log(JSON.stringify(filteredData, null, 2));
+};
+
+// test();
 
 module.exports = new Admin();
