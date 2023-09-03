@@ -292,6 +292,7 @@ class Admin {
   async realTimeData(req, res) {
     if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
       const userRequestedData = req.query;
+      console.log(userRequestedData);
       const aggregationPipeline = [];
 
       if (Object.keys(userRequestedData).length !== 0) {
@@ -333,21 +334,18 @@ class Admin {
 
       let filteredData = result;
       if (Object.keys(userRequestedData).length !== 0) {
-        filteredData = result.map((bus) => ({
-          ...bus,
-          busData: bus.busData.filter((entry) => {
-            const requestedCreatedAt =
-              userRequestedData[entry.busNumber]?.createdAt;
-            if (requestedCreatedAt) {
-              const entryCreatedAt = new Date(entry.createdAt).getTime();
-              const requestedCreatedAtTime = new Date(
-                requestedCreatedAt
-              ).getTime();
-              return entryCreatedAt > requestedCreatedAtTime;
-            }
-            return true;
-          }),
-        }));
+        filteredData = filteredData.map((bus) => {
+          return {
+            busNumber: bus.busNumber,
+            busData: bus.busData.filter((dataPoint) => {
+              const dataTimestamp = new Date(dataPoint.createdAt);
+              const requestedTimestamp = new Date(
+                userRequestedData[bus.busNumber]?.createdAt
+              );
+              return dataTimestamp > requestedTimestamp;
+            }),
+          };
+        });
       }
 
       return res.json(filteredData);
@@ -369,7 +367,11 @@ const a = async () => {
 };
 
 const test = async () => {
-  const userRequestedData = {};
+  const userRequestedData = {
+    18: { createdAt: "2023-08-28T03:27:48.268Z" },
+    19: { createdAt: "2023-08-28T03:23:48.759Z" },
+  };
+
   const aggregationPipeline = [];
 
   if (Object.keys(userRequestedData).length !== 0) {
@@ -411,22 +413,34 @@ const test = async () => {
 
   let filteredData = result;
   if (Object.keys(userRequestedData).length !== 0) {
-    filteredData = result.map((bus) => ({
-      ...bus,
-      busData: bus.busData.filter((entry) => {
-        const requestedCreatedAt =
-          userRequestedData[entry.busNumber]?.createdAt;
-        if (requestedCreatedAt) {
-          const entryCreatedAt = new Date(entry.createdAt).getTime();
-          const requestedCreatedAtTime = new Date(requestedCreatedAt).getTime();
-          return entryCreatedAt > requestedCreatedAtTime;
-        }
-        return true;
-      }),
-    }));
+    filteredData = filteredData.map((bus) => {
+      return {
+        busNumber: bus.busNumber,
+        busData: bus.busData.filter((dataPoint) => {
+          const dataTimestamp = new Date(dataPoint.createdAt);
+          const requestedTimestamp = new Date(
+            userRequestedData[bus.busNumber]?.createdAt
+          );
+          return dataTimestamp > requestedTimestamp;
+        }),
+      };
+    });
   }
 
+  // const fs = require("fs");
+  // fs.writeFileSync("test.json", JSON.stringify(filteredData));
+
+  for (let i = 0; i < filteredData.length; i++) {
+    const element = filteredData[i];
+    for (let index = 0; index < element.busData.length; index++) {
+      const ele = element.busData[index];
+      console.log(
+        new Date(ele.createdAt) > new Date("2023-08-28T03:27:48.268Z")
+      );
+    }
+  }
   console.log(JSON.stringify(filteredData, null, 2));
+  console.log("\n================================");
 };
 
 // test();
