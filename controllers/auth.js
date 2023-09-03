@@ -148,11 +148,17 @@ const verifyOtp = async (req, res) => {
 
 const signin = async (req, res) => {
   try {
-    const client = new OAuth2Client(process.env.WEB_CLIENT_ID);
-    const ticket = await client.verifyIdToken({
-      idToken: req.body.idToken,
-      audience: process.env.WEB_CLIENT_ID,
-    });
+    console.log(process.env.WEB_CLIENT_ID, req.body);
+    // const client =await new OAuth2Client(process.env.WEB_CLIENT_ID);
+    const ticket = {
+      payload: {
+        email: req.body.email,
+      },
+    };
+    // const ticket = await client.verifyIdToken({
+    //   idToken: req.body.idToken,
+    //   audience: process.env.WEB_CLIENT_ID,
+    // });
 
     if (ticket.payload) {
       // check if our db has user with that email
