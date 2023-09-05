@@ -148,8 +148,8 @@ const verifyOtp = async (req, res) => {
 
 const signin = async (req, res) => {
   try {
-    console.log(process.env.WEB_CLIENT_ID, req.body);
     // const client =await new OAuth2Client(process.env.WEB_CLIENT_ID);
+
     const ticket = {
       payload: {
         email: req.body.email,
@@ -172,6 +172,16 @@ const signin = async (req, res) => {
         return res.json({
           error: "No user found",
         });
+      }
+
+      if (req.body?.manual) {
+        console.log(user.password, req.body.password);
+        const match = await comparePassword(req.body.password, user.password);
+        if (!match) {
+          return res.json({
+            error: "Invalid Email or Password",
+          });
+        }
       }
       // create signed token
       const token = jwt.sign(

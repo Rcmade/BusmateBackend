@@ -17,6 +17,10 @@ const AppFeatureSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    manualSigin: {
+      type: Boolean,
+      default: false,
+    },
     contributor: {
       type: mongoose.Schema.Types.ObjectId,
       trim: true,

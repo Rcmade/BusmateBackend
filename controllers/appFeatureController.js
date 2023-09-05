@@ -7,7 +7,7 @@ class AppFeatures {
         createdAt: -1,
       })
       .select(
-        "_id destinationLatitude destinationLongitude startTime endTime temprary updatedAt"
+        "_id destinationLatitude destinationLongitude startTime endTime temprary updatedAt manualSigin"
       )
       .limit(1);
 

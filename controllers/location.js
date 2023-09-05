@@ -129,10 +129,11 @@ const asignContributor = async (req, res) => {
     // if distance is less then 300 Meter
     if (+distance <= 300 || !lastLocationTime) {
       // Sort the contributors by their createdAt timestamp and remove the oldest contributors. here we want only five contributor
+      console.log(getContributor?.previousFiveContributor);
       const resetContributor =
-        dynamicSort(getContributor.previousFiveContributor)?.length > 5
-          ? dynamicSort(getContributor.previousFiveContributor).pop()
-          : dynamicSort(getContributor.previousFiveContributor);
+        dynamicSort(getContributor?.previousFiveContributor || [])?.length > 5
+          ? dynamicSort(getContributor?.previousFiveContributor || []).pop()
+          : dynamicSort(getContributor?.previousFiveContributor || []);
 
       // console.log(
       //   JSON.stringify(
@@ -252,7 +253,7 @@ const getNewLocation = async (req, res) => {
   const getCurrentContributor = await RealTimeLocation.find(filters)
     .select("-_id longitude latitude heading createdAt")
     .sort({ createdAt: 1 })
-    
+
     .lean();
 
   return res.json(getCurrentContributor);
@@ -343,19 +344,18 @@ const changeContributor = async (req, res) => {
 };
 
 const a = async () => {
+  // /api/getnewlocation?date=2023-09-05T06:30:04.489Z&busNumber=19
   const busNumber = 18;
   const getCurrentContributor = await RealTimeLocation.find({
-    createdAt: { $gt: "2023-05-23T02:36:16.780+00:00" },
-    busNumber: +busNumber,
-  })
-    .select("-_id longitude latitude heading createdAt")
-    .sort({ createdAt: 1 })
-    .lean();
+    createdAt: {
+      $gt: "2023-09-05T06:39:47.186Z",
+    },
+  });
 
-  // console.log(JSON.stringify(getCurrentContributor, null, 2));
+  console.log(JSON.stringify(getCurrentContributor, null, 2));
 };
 
-// a();
+a();
 
 module.exports = {
   addNewLocation,

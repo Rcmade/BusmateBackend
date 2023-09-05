@@ -18,14 +18,11 @@ const userSchema = new Schema(
       unique: true,
     },
 
-    // password: {
-    //   type: String,
-    //   // required: function () {
-    //   //   return this.role !== "driver";
-    //   // },
-    //   // min: 6,
-    //   // max: 64,
-    // },
+    password: {
+      type: String,
+      // min: 6,
+      // max: 64,
+    },
 
     role: {
       type: String,
