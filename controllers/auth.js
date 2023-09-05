@@ -175,7 +175,6 @@ const signin = async (req, res) => {
       }
 
       if (req.body?.manual) {
-        console.log(user.password, req.body.password);
         const match = await comparePassword(req.body.password, user.password);
         if (!match) {
           return res.json({
