@@ -355,8 +355,6 @@ const a = async () => {
   console.log(JSON.stringify(getCurrentContributor, null, 2));
 };
 
-a();
-
 module.exports = {
   addNewLocation,
   asignContributor,
