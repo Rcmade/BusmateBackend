@@ -68,12 +68,20 @@ const getPublicId = async (imgUrl) => {
   return publicId;
 };
 
-const isCurrentContributorAvailable = async (latestLocationDate) => {
-  const isLastLocation2Min =
-    new Date(
-      new Date(new Date(latestLocationDate)).getTime() + 1000 * 60 * 2.5
-    ).getTime() > Date.now();
-  return isLastLocation2Min;
+
+// it return true if connection is not break
+const isCurrentContributorAvailable = async (
+  latestLocationDate,
+  // 4 minutes
+  preTime = 240000
+) => {
+  // Calculate the timestamp 4 minutes ago
+  const fourMinutesAgo = new Date(Date.now() - preTime);
+
+  // Check if the latestLocationDate is greater than or equal to four minutes ago
+  const isLastLocation4Min = latestLocationDate >= fourMinutesAgo;
+
+  return isLastLocation4Min;
 };
 
 const statistics = async (database, dbName = "notGiven") => {

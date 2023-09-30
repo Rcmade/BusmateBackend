@@ -8,24 +8,16 @@ const {
 } = require("../controllers/location");
 const realTimeLocation = require("../models/realTimeLocation");
 const router = express.Router();
+const contributorData = require("../models/appUtility");
 
 router.post("/addnewlocation", addNewLocation);
 router.post("/changecontributor", changeContributor);
 router.post("/asignContributor", asignContributor);
 router.get("/getnewlocation", getNewLocation);
 
+router.get("/get", async (req, res) => {
 
-// router.get("/get", async (req, res) => {
-//   // res.json(await realTimeLocation.findOne({ busNumber: 18 }));
-//   const user = await User.findByIdAndUpdate(
-//     "64322d6e01b149350d7e1fe7",
-//     {
-//       $inc: { weight: -0.05 },
-//     },  
-//     { new: true }
-//   );
-//   res.json({ user });
-// });
+});
 
 // router.post("/get", async (req, res) => {
 //   // const user = new User(req.body);

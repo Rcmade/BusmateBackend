@@ -8,7 +8,7 @@ const {
 } = require("../helpers/functions");
 
 const { calculateWeightMs } = require("../helpers/MathFunctions");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 const addNewLocation = async (req, res) => {
   const {
@@ -20,13 +20,12 @@ const addNewLocation = async (req, res) => {
     _id,
   } = req.body;
 
-  // find to contributor how sitted in the bus
+  // find to contributor who sitted in the bus
   const getCurrentContributor = await contributorData
     .findOne({
       busNumber,
     })
     .select("_id currentContributor previousFiveContributor "); // User Data
-  // console.log({ _id, getCurrentContributor });
   // because after assigning the user we want to store data only who becomes a contributor from the assing method
   if (getCurrentContributor?.currentContributor?.toString() === _id) {
     await RealTimeLocation.create({
@@ -60,18 +59,17 @@ const asignContributor = async (req, res) => {
   // Get Data from Body
   const { latitude1, longitude1, busNumber, weight, ms, _id } = req.body;
   // Finding the busNumber from database
-  // console.log({ latitude1, longitude1, busNumber, weight, ms, _id });
   const findBusNo = await RealTimeLocation.find({ busNumber })
     .select("-_id longitude latitude contributor ms createdAt ")
     .sort({
       createdAt: -1,
     })
-    .limit(3)
+    .limit(2)
     .populate({ path: "contributor", select: "-_id weight " });
 
   // IF there is no data present in database which means it is the first contributar for that bus
   if (!findBusNo.length) {
-    const createFirstContributor = await contributorData.create({
+    await contributorData.create({
       busNumber,
       currentContributor: _id,
       // previousFiveContributor: [resetContributor],
@@ -86,15 +84,21 @@ const asignContributor = async (req, res) => {
     // If there is already have contributor to that bus then compare the weight
   } else {
     const { latitude, longitude, createdAt } = findBusNo[0];
-    // Calculate the distance between the contributor and new user
+    // Calculate the distance between the existing contributor and new user
     const distance = await calculateDistance(
+      // new user latitude
       latitude1,
+      // existing user latitude and longitude
       latitude,
+      // new user longitude
       longitude1,
+      // existing user longitude
       longitude
     );
 
+    // get weight from the last location of existing user
     const contributerWeight = findBusNo[0].contributor.weight;
+    // get ping from the last location of existing user
     const contributors = findBusNo[0].ms;
 
     // Calculate the weight between the ms(ping) and weight for current Contributor (who already contributed their location)
@@ -104,78 +108,71 @@ const asignContributor = async (req, res) => {
     );
     // Calculate the weight between the ms(ping) and weight for new User
     const getNewUserWeight = calculateWeightMs(+weight, +ms);
-    // console.log({
-    //   contributerWeight,
-    //   contributors,
-    //   getContributerWeight,
-    //   getNewUserWeight,
-    // });
 
-    /*  finding the person who has already  contributed their location*/
-    const getContributor = await contributorData
-      .findOne({ busNumber })
-      .select("currentContributor previousFiveContributor _id");
-    // console.log(JSON.stringify(getContributor, null, 2));
+    /*  finding the person who has already  contributed their location to prevent to create two doucument with same contributor and Sort the contributors by their createdAt timestamp to remove the oldest contributors. here we want only five contributor */
+    const getContributor = await contributorData.findOne({
+      busNumber,
+    });
 
-    //find last location from realTimeDatabase  , If last location time is more than 2.5 minutes ago, which means that user is turned off their location or internet
+    if (getContributor?.previousFiveContributor?.length) {
+      getContributor?.previousFiveContributor?.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+    }
+
+    //find last location from realTimeDatabase, If last location time is more than 4 minutes ago, which means that user is turned off their location or connection lost
+    // it return true if connection is not break
     const lastLocationTime = await isCurrentContributorAvailable(createdAt);
-    // console.log(
-    //   { lastLocationTime },
-    //   "+distance <= 300 || !lastLocationTime",
-    //   +distance <= 300 || !lastLocationTime
-    // );
-    // if (getNewUserWeight > getContributerWeight || !lastLocationTime) {
     // change current contributor
-    // if distance is less then 300 Meter
+    // if distance is less then 300 Meter or last user may disconnected
     if (+distance <= 300 || !lastLocationTime) {
-      // Sort the contributors by their createdAt timestamp and remove the oldest contributors. here we want only five contributor
-      console.log(getContributor?.previousFiveContributor);
-      const resetContributor =
-        dynamicSort(getContributor?.previousFiveContributor || [])?.length > 5
-          ? dynamicSort(getContributor?.previousFiveContributor || []).pop()
-          : dynamicSort(getContributor?.previousFiveContributor || []);
+      if (getContributor?.previousFiveContributor?.length >= 5) {
+        // remove the oldest contributor
+        getContributor?.previousFiveContributor?.shift();
+      }
+      // After sorting , currentContributor converted into privous  contributors and new User will be the new contributors
+      // Initialize an empty array called prevFiveContributor to store contributor objects.
+      let prevFiveContributor = getContributor?.previousFiveContributor?.length
+        ? [...getContributor?.previousFiveContributor]
+        : [];
 
-      // console.log(
-      //   JSON.stringify(
-      //     {
-      //       resetContributor,
-      //       getContributor: getContributor.previousFiveContributor,
-      //     },
-      //     null,
-      //     2
-      //   )
-      // );
-
-      // console.log(
-      //   " lastLocationTime && getNewUserWeight > getContributerWeight",
-      //   lastLocationTime && getNewUserWeight > getContributerWeight
-      // );
-
-      // console.log(
-      //   "getNewUserWeight < getContributerWeight && lastLocationTime && +distance <= 300 &&",
-      //   getNewUserWeight < getContributerWeight &&
-      //     lastLocationTime &&
-      //     +distance <= 300
-      // );
-
-      // After sorting , currentContributor converted into privous  contributors and currentContributor will be the new contributors
-
-      const prevFiveContributor = [];
+      // if connection is not break by currentContributor and new User have heigher weight then currnet contributor becomes previous contributor
       if (lastLocationTime && getNewUserWeight > getContributerWeight) {
+        // Check if lastLocationTime is truthy (not null or undefined) and if getNewUserWeight is greater than getContributerWeight.
+        // This condition checks if the new user has a higher weight (importance) than the current contributor.
         prevFiveContributor.push({
           contributor: getContributor.currentContributor,
+          weight: contributerWeight,
         });
+
+        // if current contributor weight is higher than new contributor and new contributor is also near the bus the and connection is already established between server and current contributor then new user will be the previous contributor
+        // Essentially, this adds the current contributor to the prevFiveContributor array as a potential previous contributor.
       } else if (
         getNewUserWeight < getContributerWeight &&
         lastLocationTime &&
         +distance <= 300
       ) {
-        prevFiveContributor.push({
-          contributor: _id,
-        });
+        // Check if getNewUserWeight is less than getContributerWeight, lastLocationTime is truthy, and distance is less than or equal to 300 meters.
+        // This condition checks if the new user has a lower weight (importance) than the current contributor and the distance between them is within 300 meters.
+
+        // if check if new user already exist in previousFiveContributor list then do not add him again
+        const isPrevContributorExist = prevFiveContributor.find(
+          (i) => i.contributor.toString() === _id.toString()
+        );
+        if (
+          !isPrevContributorExist ||
+          _id.toString !== getContributor.currentContributor.toString()
+        ) {
+          prevFiveContributor.push({
+            contributor: _id,
+            weight: weight,
+          });
+        }
+        // If this condition is met, push an object into prevFiveContributor array.
+        // This object contains a contributor key with the value of _id, which represents the new user as a potential previous contributor.
       }
 
-      const updateContributor = await contributorData.findOneAndUpdate(
+      await contributorData.findOneAndUpdate(
         {
           busNumber,
         },
@@ -183,18 +180,13 @@ const asignContributor = async (req, res) => {
           $set: {
             // new Contributor
             currentContributor:
+              // if new user have heiger weight and current contributor connection is break then new user becomes current contributor else previous contributor continue
               getNewUserWeight > getContributerWeight || !lastLocationTime
                 ? _id
                 : getContributor.currentContributor,
 
-            previousFiveContributor: [
-              // Previous five contributor
-              ...resetContributor.filter(Boolean),
-              // Current contributor converted Into Previous Contributor
-              ...prevFiveContributor,
-            ],
+            previousFiveContributor: prevFiveContributor,
             busNumber: getContributor.busNumber,
-            // createdAt: Date.now(),
           },
         },
         {
@@ -202,22 +194,7 @@ const asignContributor = async (req, res) => {
           new: true,
         }
       );
-      // console.log(
-      //   JSON.stringify(
-      //     {
-      //       updateContributor,
-      //       getContributor,
-      //       resetContributor,
-      //       previous:
-      //         getNewUserWeight > getContributerWeight || !lastLocationTime
-      //           ? false
-      //           : true,
-      //       assigned: true,
-      //     },
-      //     null,
-      //     2
-      //   )
-      // );
+
       return res.json({
         previous:
           getNewUserWeight > getContributerWeight || !lastLocationTime
@@ -244,19 +221,72 @@ const asignContributor = async (req, res) => {
 };
 
 const getNewLocation = async (req, res) => {
-  // console.log("data", req.query);
+  // get the data from query which is send by the user
   const { date, busNumber } = req.query;
   const filters = {
     ...(date ? { createdAt: { $gt: date } } : {}), // Include createdAt filter if date is provided
     busNumber: +busNumber,
   };
-  const getCurrentContributor = await RealTimeLocation.find(filters)
+
+  // get the data in db , and this will sorted in the ascending order so the data retrieved will be ordered from the oldest to the newest based on the creation timestamp
+  const getCurrentLocation = await RealTimeLocation.find(filters)
     .select("-_id longitude latitude heading createdAt")
     .sort({ createdAt: 1 })
-
     .lean();
 
-  return res.json(getCurrentContributor);
+  // get the newest location and and if newest location is more then 15 min ago then we chnage the current contributer
+  if (getCurrentLocation[getCurrentLocation?.length - 1]?.createdAt) {
+    // if last location is more then 15 min ago then return false
+    const isContributorAvalable = await isCurrentContributorAvailable(
+      getCurrentLocation[getCurrentLocation.length - 1]?.createdAt,
+      1000 * 60 * 15
+    );
+
+    if (!isContributorAvalable) {
+      const getContributor = await contributorData
+        .findOne({ busNumber })
+        .select("currentContributor previousFiveContributor _id busNumber");
+
+      // if  previous contributors is exist then only
+      if (getContributor?.previousFiveContributor?.length) {
+        getContributor?.previousFiveContributor?.sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+
+        // remove the last element to the list so last element is the newest contributor of previousFiveContributor list this newest contributor store in the getLatestPrevFiveContributor variable
+        const getLatestPrevFiveContributor =
+          getContributor?.previousFiveContributor?.pop();
+
+        await contributorData.findOneAndUpdate(
+          {
+            busNumber,
+          },
+          {
+            $set: {
+              // new Contributor
+              currentContributor: getLatestPrevFiveContributor.contributor,
+              // remain other contributor
+              previousFiveContributor: getContributor?.previousFiveContributor,
+              busNumber,
+            },
+          },
+          {
+            // It will return the new contributor document
+            new: true,
+          }
+        );
+      }
+    }
+  }
+
+  if (req.query?.version) {
+    return res.json({
+      data: getCurrentLocation,
+      // message
+    });
+  } else {
+    return res.json(getCurrentLocation);
+  }
 };
 
 const changeContributor = async (req, res) => {
@@ -284,8 +314,6 @@ const changeContributor = async (req, res) => {
         // this runs when current contributor turn off there location
         // we choose the latest contributor from the previous contributor  which is store in getAndRemoveContributor variable
         const getAndRemoveContributor = resetContributor.shift();
-        // console.log(JSON.stringify(getContributor, null, 2));
-        // console.log(JSON.stringify(getAndRemoveContributor, null, 2));
         // After sorting , currentContributor  privous contributor converted into current contribuer and remove currentContributor from the database because currentContributor turn of their location
         await contributorData.findOneAndUpdate(
           {
@@ -311,7 +339,6 @@ const changeContributor = async (req, res) => {
         return;
         //  res.json({ youAreDone: true });
       } else if (findFromPreviousFiveContributor) {
-        // console.log(JSON.stringify(findFromPreviousFiveContributor, null, 2));
         await contributorData.findOneAndUpdate(
           {
             busNumber,
@@ -344,16 +371,16 @@ const changeContributor = async (req, res) => {
 };
 
 const a = async () => {
-  // /api/getnewlocation?date=2023-09-05T06:30:04.489Z&busNumber=19
-  const busNumber = 18;
-  const getCurrentContributor = await RealTimeLocation.find({
-    createdAt: {
-      $gt: "2023-09-05T06:39:47.186Z",
+  const result = await contributorData.create([
+    {
+      _id: "651677cdbaeb92ee2f74158b",
+      currentContributor: "64ef40c34ab7c95b91bc145c",
+      busNumber: 19,
     },
-  });
-
-  console.log(JSON.stringify(getCurrentContributor, null, 2));
+  ]);
 };
+
+// a();
 module.exports = {
   addNewLocation,
   asignContributor,
