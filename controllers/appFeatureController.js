@@ -12,7 +12,7 @@ class AppFeatures {
       )
       .limit(1);
 
-    return res.json(getData[0]);
+    return res.status(404).json(getData[0]);
   }
 
   async setAvailableTime(req, res) {
@@ -48,7 +48,7 @@ class AppFeatures {
       }
     } else {
     }
-    return res.json({ error: "Un Autharize Access" });
+    return res.status(404).json({ error: "Un Autharize Access" });
   }
 
   async setAppUpdate(req, res) {
@@ -80,7 +80,7 @@ class AppFeatures {
           contributor: req.user._id,
         }).save();
       }
-       if (createNewAppVersion) {
+      if (createNewAppVersion) {
         return res.json({
           message: "New Version Of App Is Created sucessfully",
           data: createNewAppVersion,

@@ -4,7 +4,7 @@ const User = require("../models/user");
 exports.isAuth = async (req, res, next) => {
   try {
     const token = req.cookies.login;
-    // console.log({ token });
+    console.log(req.cookies);
     if (!token) return res.json({ error: "Invalid Token. Please Login" });
     const decode = jwt.verify(token, process.env.JWT_SECRET);
     const getUser = await User.findOne({ token: token });
@@ -12,7 +12,7 @@ exports.isAuth = async (req, res, next) => {
       // console.log("getUser", getUser);
       const { _id } = decode;
       const user = await User.findById(_id).select(
-        "name _id email idCard profileImage busNumber weight isAuthenticated token photo role"
+        "name _id email idCard profileImage busNumber weight isAuthenticated token photo role tasks"
       );
       if (!user) return res.json({ error: "Invalid Token. Please Login" });
       req.user = user;

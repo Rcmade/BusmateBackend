@@ -19,10 +19,10 @@ const helmet = require("helmet");
 const path = require("path");
 
 const app = express();
-// const corsOption = {
-//   credentials: true,
-//   origin: ["http://localhost:8081/", "*"],
-// };
+const corsOption = {
+  credentials: true,
+  origin: ["http://localhost:8081/", "http://localhost:3000/"],
+};
 
 // db connection
 
@@ -37,7 +37,7 @@ require("./Db/db");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors());
+app.use(cors(corsOption));
 // // Morgan middleware setup with the file stream
 // app.use(morgan("combined", { stream: accessLogStream }));
 // app.use(morgan("combined"));

@@ -183,10 +183,19 @@ const signin = async (req, res) => {
         }
       }
       // create signed token
+
       const token = jwt.sign(
         {
           _id: user._id,
+          name: user.name,
           email: user.email,
+          role: user.role,
+          idCard: user.idCard,
+          profileImage: user.profileImage,
+          idImage: user.idImage,
+          busNumber: user.busNumber,
+          weight: user.weight,
+          isAuthenticated: user.isAuthenticated,
           createdAt: user.createdAt,
         },
         process.env.JWT_SECRET,
@@ -223,7 +232,32 @@ const signin = async (req, res) => {
 
 const userInitialRoute = async (req, res) => {
   if (req.user) {
-    return res.status(200).json({ user: req.user });
+    // create signed token
+    const token = jwt.sign(
+      {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+        idCard: req.user.idCard,
+        profileImage: req.user.profileImage,
+        idImage: req.user.idImage,
+        busNumber: req.user.busNumber,
+        weight: req.user.weight,
+        isAuthenticated: req.user.isAuthenticated,
+        createdAt: req.user.createdAt,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    res.cookie("login", token, {
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+      httpOnly: true,
+    });
+    return res.status(200).json({ user: req.user, token });
   } else {
     return res.status(200).json({ user: null });
   }
@@ -273,7 +307,7 @@ const resetPassword = async (req, res) => {
 const logout = async (req, res) => {
   try {
     await res.clearCookie("login");
-    return res.json({ message: "Logout" });
+    return res.json({ message: "Logut successfully" });
   } catch (err) {
     console.log(err);
   }

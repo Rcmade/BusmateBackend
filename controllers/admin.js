@@ -266,7 +266,7 @@ class Admin {
   }
 
   async databaseStats(req, res) {
-    if (req.user.role === "superAdmin" && req.user.isAuthenticated === true) {
+    if (req.user?.role === "superAdmin" && req.user?.isAuthenticated === true) {
       const ContributorStats = await statistics(ContributorDb, "ContributorDb");
       const UserStats = await statistics(User, "UserDb");
       const FiveDaysLocationStats = await statistics(
