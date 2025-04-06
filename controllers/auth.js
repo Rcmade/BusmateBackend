@@ -109,10 +109,11 @@ const otpSendController = async (req, res) => {
     const hash = await hashService.hashOtp(data);
     // console.log({ otp });
     try {
-      await EmailServices.sendEmailService(
+     const a  =  await EmailServices.sendEmailService(
         email,
         emailHtml(email, name, otp, 10)
       );
+      console.log("Email sent status:", {a});
       return res.json({
         hash: `${hash}.${expires}`,
         message: "OTP has been sent to your email",
@@ -281,6 +282,7 @@ const logout = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
+    console.log({body:req.body})
     if (!req.body?.name || !req.body?.busNumber) {
       return res.json({ error: "All fields are required" });
     }

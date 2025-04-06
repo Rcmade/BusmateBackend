@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: "1.0.0"
+    ports:
+      - "5300:5300"
+    environment:
+      NODE_ENV: production
+      APP_VERSION: "1.0.0"
+    env_file:
+      - ./.env
+    restart: always

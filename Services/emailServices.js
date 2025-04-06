@@ -14,6 +14,7 @@ class EmailServices {
         console.log("Email Send Error ", error);
         return false;
       } else {
+        // console.log({ info });
         // console.log("Email Send Info ", info);
         return true;
       }

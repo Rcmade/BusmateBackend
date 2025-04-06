@@ -4,6 +4,7 @@ const hashService = require("./hashService");
 class AuthServices {
   async createOtp() {
     const otp = crypto.randomInt(1000, 9999);
+    console.log({ otp });
     return otp;
   }
   async verifyOtp(hashedOtp, data) {

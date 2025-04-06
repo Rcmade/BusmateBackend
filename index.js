@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 const http = require("http"); // import http module
 const cluster = require("cluster");
 const os = require("os");
-const fs = require("fs");
+// const fs = require("fs");
 
 const authRoutes = require("./routes/auth");
 const appFeatureRoutes = require("./routes/appFeatureRoute");
@@ -61,12 +61,11 @@ app.use("/api", locationRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/logs", function (req, res) {
-  res.sendFile(path.join(__dirname, "/logs/access.log"));
+  // res.sendFile(path.join(__dirname, "/logs/access.log"));
 });
 
 app.use(errorHandler);
 const numCPUs = os.cpus().length;
-console.log({ numCPUs });
 if (cluster.isMaster) {
   console.log(`Master ${process.pid} is running`);
 

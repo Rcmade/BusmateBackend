@@ -80,7 +80,7 @@ class AppFeatures {
           contributor: req.user._id,
         }).save();
       }
-       if (createNewAppVersion) {
+      if (createNewAppVersion) {
         return res.json({
           message: "New Version Of App Is Created sucessfully",
           data: createNewAppVersion,
